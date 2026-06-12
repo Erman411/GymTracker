@@ -222,6 +222,8 @@ canvas { border-radius: 8px; }
       </div>
       <div class="streak-row" id="week-dots"></div>
 
+      <div id="undo-banner" style="display:none"></div>
+
       <div class="section-label">Choose session</div>
       <div id="session-list"></div>
     </div>
@@ -558,6 +560,19 @@ function renderHome(){
   }
   document.getElementById('h-streak').textContent=streak;
   document.getElementById('h-streak-sub').textContent=streak===0?'Start training!':streak===1?'1 day going':streak+' days going 🔥';
+
+  // Undo banner — show if the most recent history entry was logged today
+  const undoBanner=document.getElementById('undo-banner');
+  if(DATA.history.length>0){
+    const last=[...DATA.history].sort((a,b)=>b.ts-a.ts)[0];
+    if(last.date===todayStr){
+      undoBanner.style.display='block';
+      undoBanner.innerHTML=`<div class="card-sm" style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;color:var(--text2)">Last logged: <strong style="color:var(--text)">${last.sessionName}</strong></div>
+        <div class="expand-btn" style="color:var(--red);margin:0" onclick="undoLast(${last.ts})">Undo</div>
+      </div>`;
+    } else undoBanner.style.display='none';
+  } else undoBanner.style.display='none';
 
   // Session list
   const list=document.getElementById('session-list');
@@ -932,6 +947,7 @@ function renderLog(){
       </div>
       ${exRows?`<div class="hist-exercises" id="hex-${i}">${exRows}</div>
       <div class="expand-btn" onclick="toggleEx(${i},this)">Show exercises ▾</div>`:''}
+      <div class="expand-btn" style="color:var(--red)" onclick="deleteHistory(${h.ts})">Delete entry</div>
     </div>`;
   }).join('');
 }
@@ -941,6 +957,39 @@ function toggleEx(i,btn){
   const open=el.style.display==='block';
   el.style.display=open?'none':'block';
   btn.textContent=open?'Show exercises ▾':'Hide exercises ▴';
+}
+
+function undoLast(ts){
+  if(!confirm('Undo this entry?'))return;
+  DATA.history=DATA.history.filter(h=>h.ts!==ts);
+  recalcPBs();
+  saveData();
+  renderHome();
+  showToast('Undone');
+}
+
+function deleteHistory(ts){
+  if(!confirm('Delete this entry? This cannot be undone.'))return;
+  DATA.history=DATA.history.filter(h=>h.ts!==ts);
+  // Recalculate PBs from scratch since a deleted entry might have been a PB
+  recalcPBs();
+  saveData();
+  renderLog();
+  showToast('Entry deleted');
+}
+
+function recalcPBs(){
+  const newPBs={};
+  const sorted=[...DATA.history].sort((a,b)=>a.ts-b.ts);
+  sorted.forEach(h=>{
+    Object.entries(h.logs||{}).forEach(([exId,l])=>{
+      const cur=newPBs[exId];
+      if(!cur||l.weight>cur.weight||(l.weight===cur.weight&&l.reps>cur.reps)){
+        newPBs[exId]={weight:l.weight,reps:l.reps,date:h.date,sessionId:h.sessionId};
+      }
+    });
+  });
+  DATA.pbs=newPBs;
 }
 
 // SETTINGS
