@@ -74,7 +74,7 @@ nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--su
 .wd b{font-size:12px;font-weight:500;color:var(--faint)}
 .wd i{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;font-weight:700;background:var(--surface2);color:var(--faint);border:1.5px solid transparent}
 .wd i.done{background:var(--c);color:#fff}
-.wd i.today{border-color:var(--ink)}
+.wd i.now{border-color:var(--ink)}
 
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px}
@@ -141,9 +141,15 @@ textarea.in{resize:none;min-height:64px}
 .opt button{padding:11px 6px;border-radius:var(--r-sm);background:var(--surface2);border:1px solid var(--line);font-size:14px;font-weight:600}
 .opt button.on{background:var(--good);border-color:var(--good);color:#fff}
 .food-lines{font-size:14px;color:var(--muted);line-height:1.6;margin-top:10px}
+.pl{text-align:center;padding:22px 18px}
+.pl-name{font-size:26px!important;letter-spacing:-.5px;margin-top:6px}
+.pl-label{margin-top:18px;font-size:16px;font-weight:650;color:var(--accent)}
+.pl-label.prep{color:var(--warn)}
+.pl-time{font-size:84px;font-weight:750;letter-spacing:-3px;line-height:1;margin-top:6px}
+.pl-reps{font-size:30px;font-weight:700;margin-top:22px;letter-spacing:-.5px}
 /* rest timer */
-#rest{position:fixed;left:50%;transform:translate(-50%,120%);bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:min(528px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;display:flex;align-items:center;gap:12px;transition:transform .25s;z-index:30}
-#rest.show{transform:translate(-50%,0)}
+#rest{position:fixed;left:50%;transform:translate(-50%,calc(100% + 140px));visibility:hidden;pointer-events:none;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:min(528px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;display:flex;align-items:center;gap:12px;transition:transform .25s,visibility .25s;z-index:30}
+#rest.show{transform:translate(-50%,0);visibility:visible;pointer-events:auto}
 #rest .rt{font-size:26px;font-weight:700;letter-spacing:-.5px}
 #rest .rl{flex:1;font-size:13px;opacity:.75}
 #rest button{color:var(--bg);font-size:14px;font-weight:600;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--bg) 16%,transparent)}
@@ -194,8 +200,8 @@ select.in{background-image:none}
 
 .empty{text-align:center;color:var(--faint);font-size:14px;padding:28px 12px;line-height:1.6}
 .hint{font-size:13px;color:var(--faint);line-height:1.5;margin:8px 4px}
-#toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translate(-50%,-150%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:550;transition:transform .25s;z-index:40;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#toast.show{transform:translate(-50%,0)}
+#toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translate(-50%,-200px);visibility:hidden;pointer-events:none;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:550;transition:transform .25s;z-index:40;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast.show{transform:translate(-50%,0);visibility:visible}
 #toast.pb{background:var(--pb);color:#fff}
 </style>
 </head>
@@ -241,6 +247,7 @@ select.in{background-image:none}
     <!-- MOBILITY -->
     <section class="view" id="v-diet"><div id="diet"></div></section>
     <section class="view" id="v-mobility"><div id="mobility"></div></section>
+    <section class="view" id="v-routine"><div id="routine"></div></section>
 
     <!-- SETTINGS -->
     <section class="view" id="v-settings">
@@ -272,7 +279,7 @@ select.in{background-image:none}
     <button class="nav-btn on" data-act="tab" data-t="home"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
     <button class="nav-btn" data-act="tab" data-t="diet"><svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v8M7 7h4M17 3c-1.7 1-3 3.2-3 6.5V13h3v8"/></svg>Diet</button>
     <button class="nav-btn" data-act="tab" data-t="progress"><svg viewBox="0 0 24 24"><path d="M4 19h16M7 15v-4M12 15V6M17 15v-7"/></svg>Progress</button>
-    <button class="nav-btn" data-act="tab" data-t="mobility"><svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2"/><path d="M5 9.5l7 1 7-1M12 10.5V15l-3.5 6M12 15l3.5 6"/></svg>Mobility</button>
+    <button class="nav-btn" data-act="tab" data-t="mobility"><svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2"/><path d="M5 9.5l7 1 7-1M12 10.5V15l-3.5 6M12 15l3.5 6"/></svg>Stretch</button>
     <button class="nav-btn" data-act="tab" data-t="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Settings</button>
   </div></nav>
 </div>
@@ -351,24 +358,60 @@ const S = {
 const SCHEDULE = {1:'upperA',2:'lowerA',3:'upperB',4:'lowerB',5:'engine',6:'recovery',0:'football'};
 const DAYNAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-const MOBILITY = [
-  {id:'pre',title:'Before training',sub:'Fasted mornings',items:[
-    ['Big glass of water','Coffee too if you like'],['Tue, Wed, Thu: 20–25g fast carbs','Banana, dates, or rice cake with honey, 20 min before'],['Protein breakfast after','30–40g within an hour']]},
-  {id:'warm',title:'Gym warm-up',sub:'Every session, 8 min, before lifting',items:[
-    ['Bike or rower, easy','3 min'],['Leg swings','10 each way, each leg'],['Arm circles + band pull-aparts','15 each'],['Bodyweight squats','10'],['Day extras','Tue: ankle + pogo hops · Thu: ankle + Copenhagen · Fri: ankle'],['Ramp-up sets on first lift','Build to working weight']]},
-  {id:'ankle',title:'Ankle routine',sub:'Tue, Thu, Fri and Saturday, 4 min',items:[
-    ['Knee-to-wall rocks','15 each side'],['Kneeling ankle stretch','Lean over front foot, 30 sec each side'],['Tibialis raise','Back against wall, 15'],['Slow calf raise','3 sec down, 10']]},
-  {id:'lower',title:'Lower body stretch',sub:'After Tue, Thu, Fri, about 6 min',items:[
-    ['Couch stretch','45 sec each side. Back foot on bench, squeeze glute, push hips forward'],['Seated hamstring fold','45 sec each side. Hinge from the hip, back flat'],['Pigeon pose','45 sec each side. Sink hips, fold forward'],['Calf stretch on wall','30 sec each side, straight then bent knee'],['Deep squat hold','60 sec. Heels down, elbows pushing knees out']]},
-  {id:'upper',title:'Upper body stretch',sub:'After Mon and Wed, about 6 min',items:[
-    ['Doorway pec stretch','30 sec at low, mid, high elbow, each side'],['Cross-body shoulder','30 sec each side'],['Overhead triceps','30 sec each side'],['Thread the needle','45 sec each side'],['Lat hang','30 sec × 2']]},
-  {id:'fpre',title:'Football warm-up',sub:'On the pitch before kick-off, about 12 min',items:[
-    ['Easy jog','3 min'],['High knees','20m'],['Heel flicks','20m'],['Side shuffle','20m each way'],['Carioca','20m each way'],['Hip open gate','10 each leg, walking'],['Hip close gate','10 each leg, walking'],['Walking lunge with twist','10 each leg'],['Leg swings on a post','10 front-back, 10 side-side, each leg'],['Lateral lunge','8 each side'],['Build-up sprints','3 × 30m at 60%, 75%, 90%'],['Quick direction changes','4 short shuttles']]},
-  {id:'fpost',title:'Football cool-down',sub:'After the game, about 12 min',items:[
-    ['Walk or light jog','3 min'],['Standing quad stretch','30 sec each side'],['Couch stretch or kneeling hip flexor','45 sec each side'],['Standing hamstring stretch','Heel on a low step, 45 sec each side'],['Side lunge hold','30 sec each side'],['Butterfly stretch','45 sec'],['Pigeon pose','45 sec each side'],['Calf stretch','30 sec each side'],["Child's pose",'45 sec']]},
-  {id:'flow',title:'Saturday recovery flow',sub:'About 15 min',items:[
-    ['Ankle routine','4 min'],['Cat-cow','10 slow reps'],['Thread the needle','30 sec each side'],['90/90 hip switches','10 each side'],['Couch stretch','45 sec each side'],['Pigeon pose','45 sec each side'],['Doorway pec stretch','30 sec each side'],['Deep squat hold','90 sec'],['Lat hang','30 sec']]},
-];
+// ---------- STRETCH LIBRARY ----------
+// hold = a static stretch you hold; move = a drill you do for reps
+const LIB = {
+  couch:{n:'Couch stretch',t:'Hip flexors, quads',hold:1,c:['Back knee on the floor against a wall or bench, shin running up it','Front foot flat, knee over ankle','Tuck your pelvis under and squeeze the back glute','Stay tall'],x:'Arching your lower back to fake the range'},
+  hamfold:{n:'Seated hamstring fold',t:'Hamstrings',hold:1,c:['One leg straight, the other foot against your inner thigh','Hinge forward from the hips','Aim your chest at your knee, not your hands at your toes'],x:'Rounding your upper back to reach further'},
+  pigeon:{n:'Pigeon pose',t:'Glutes, hip rotators',hold:1,c:['Front shin across your body, back leg straight behind','Keep your hips square to the floor','Walk your hands forward and sink your chest down'],x:'Tipping onto the side of the front hip'},
+  calf:{n:'Calf stretch on wall',t:'Calves, Achilles',hold:1,c:['Ball of the foot up against the wall, heel down','Lean your hips in until you feel the calf','Bent-knee position reaches the deeper calf muscle'],x:'Letting the heel lift'},
+  deepsquat:{n:'Deep squat hold',t:'Ankles, hips, groin',hold:1,c:['Feet shoulder-width, toes slightly out','Heels stay down. Hold a door frame for balance if needed','Elbows push your knees out, chest up'],x:'Rising onto your toes. Hold something instead'},
+  doorpec:{n:'Doorway pec stretch',t:'Chest, front shoulders',hold:1,c:['Forearm flat on the door frame','Step through with the same-side foot until you feel your chest','Low, shoulder-height and high elbow each hit a different part of the chest'],x:'Pushing into pain at the front of the shoulder'},
+  crossbody:{n:'Cross-body shoulder',t:'Rear delts, upper back',hold:1,c:['Bring one arm across your chest','Pull gently at the elbow, not the wrist','Keep the shoulder down, away from your ear'],x:'Shrugging the shoulder up'},
+  ohtri:{n:'Overhead triceps',t:'Triceps, lats',hold:1,c:['Reach one hand down your spine','Other hand presses the elbow back','Ribs down, core braced'],x:'Arching your lower back'},
+  thread:{n:'Thread the needle',t:'Upper back',hold:1,c:['Start on all fours','Slide one arm under and across, palm up','Rest the shoulder and side of your head on the floor. Breathe into the upper back'],x:'Twisting from the lower back instead'},
+  lathang:{n:'Lat hang',t:'Lats, shoulders, spine',hold:1,c:['Overhand grip on a pull-up bar','Let your body hang completely relaxed','Keep your feet on the floor to take some weight if needed'],x:'Holding tension in your shoulders'},
+  quad:{n:'Standing quad stretch',t:'Quads',hold:1,c:['Stand on one leg and hold the other ankle behind you','Knees together, push the hip forward slightly','Hold something for balance'],x:'Letting the knee drift out to the side'},
+  standham:{n:'Standing hamstring stretch',t:'Hamstrings',hold:1,c:['Heel on a low step, leg straight, toes up','Hinge forward from the hips with a flat back'],x:'Rounding your back'},
+  sidelunge:{n:'Side lunge hold',t:'Groin',hold:1,c:['Wide stance, sink into one knee, other leg straight','Toes forward, chest up','Sit back into the bent hip'],x:'Knee caving inward'},
+  butterfly:{n:'Butterfly stretch',t:'Groin, inner thighs',hold:1,c:['Sit tall with the soles of your feet together','Hold your ankles and let your knees drop','Lean forward from the hips for more'],x:'Forcing your knees down with your elbows'},
+  childs:{n:"Child's pose",t:'Lower back, lats',hold:1,c:['Kneel with big toes together, knees wide','Sit back toward your heels','Arms long in front, forehead down'],x:'Holding your breath'},
+  kneelankle:{n:'Kneeling ankle stretch',t:'Ankles, calves',hold:1,c:['Half-kneel with the front foot flat','Lean your weight forward over the front foot','Heel stays down, knee tracks over your toes'],x:'Heel lifting off the floor'},
+  kneewall:{n:'Knee-to-wall rocks',t:'Ankle mobility',c:['Foot a few centimetres from the wall','Drive the knee forward to touch the wall, heel down','Rock in and out'],x:'Heel lifting'},
+  tibraise:{n:'Tibialis raise',t:'Shins',c:['Back against a wall, feet out in front','Lift your toes as high as you can','Lower slowly']},
+  slowcalf:{n:'Slow calf raise',t:'Calves, Achilles',c:['Rise onto your toes','Take 3 seconds to lower']},
+  catcow:{n:'Cat-cow',t:'Spine',c:['On all fours','Round your back up, then let it drop and look up','Move slowly with your breath']},
+  hips9090:{n:'90/90 hip switches',t:'Hip rotation',c:['Sit with both knees bent at 90°','Rotate both knees over to the other side','Stay tall, hands behind you for support']},
+  walk:{n:'Walk or light jog',t:'Bring your heart rate down',c:['Keep moving at an easy pace']},
+  easycardio:{n:'Easy bike or rower',t:'Raise body temperature',c:['Conversational pace']},
+  legswing:{n:'Leg swings',t:'Hips',c:['Hold something for balance','Swing front to back, then side to side']},
+  armcircle:{n:'Arm circles + band pull-aparts',t:'Shoulders',c:['Small to big circles, both directions','Pull the band apart to your chest, squeeze your shoulder blades']},
+  bwsquat:{n:'Bodyweight squats',t:'Hips, knees, ankles',c:['Full depth, controlled']},
+  rampup:{n:'Ramp-up sets',t:'Your first lift',c:['3–4 light sets building to your working weight']},
+  jog:{n:'Easy jog',t:'Warm up',c:['Relaxed pace, a lap or two of the pitch']},
+  highknees:{n:'High knees',t:'Hip flexors',c:['Quick feet, knees to hip height']},
+  heelflicks:{n:'Heel flicks',t:'Quads',c:['Heels up toward your glutes, quick rhythm']},
+  shuffle:{n:'Side shuffle',t:'Hips, groin',c:['Low stance, feet never cross']},
+  carioca:{n:'Carioca',t:'Hips',c:['Sideways, back foot crosses in front then behind']},
+  hipopen:{n:'Hip open gate',t:'Hips, groin',c:['Walking, lift the knee up then rotate it out to the side']},
+  hipclose:{n:'Hip close gate',t:'Hips, groin',c:['Walking, lift the knee out to the side then rotate it across']},
+  lungetwist:{n:'Walking lunge with twist',t:'Hips, trunk',c:['Long step, rotate your chest toward the front leg']},
+  legswingpost:{n:'Leg swings on a post',t:'Hamstrings, hips',c:['Front to back, then side to side, controlled']},
+  latlunge:{n:'Lateral lunge',t:'Groin',c:['Step wide, sit into one hip, keep the other leg straight']},
+  buildup:{n:'Build-up sprints',t:'Getting ready to sprint',c:['First at 60%, then 75%, then 90%','Walk back between each']},
+  shuttles:{n:'Direction changes',t:'Cutting and turning',c:['Short sharp shuttles, plant and change direction']},
+};
+const ROUTINES = {
+  lower:{title:'Lower body stretch',when:'After Tue, Thu and Fri',g:'after',steps:[{s:'couch',t:45,sides:1},{s:'hamfold',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'calf',t:30,sides:1,parts:['Straight knee','Bent knee']},{s:'deepsquat',t:60}]},
+  upper:{title:'Upper body stretch',when:'After Mon and Wed',g:'after',steps:[{s:'doorpec',t:30,sides:1,parts:['Elbow low','Elbow at shoulder height','Elbow high']},{s:'crossbody',t:30,sides:1},{s:'ohtri',t:30,sides:1},{s:'thread',t:45,sides:1},{s:'lathang',t:30,parts:['Hang 1','Hang 2']}]},
+  fpost:{title:'Football cool-down',when:'After the game',g:'football',steps:[{s:'walk',t:180},{s:'quad',t:30,sides:1},{s:'couch',t:45,sides:1},{s:'standham',t:45,sides:1},{s:'sidelunge',t:30,sides:1},{s:'butterfly',t:45},{s:'pigeon',t:45,sides:1},{s:'calf',t:30,sides:1},{s:'childs',t:45}]},
+  fpre:{title:'Football warm-up',when:'On the pitch before kick-off. Moving, no holds',g:'football',steps:[{s:'jog',t:180},{s:'highknees',r:'20m'},{s:'heelflicks',r:'20m'},{s:'shuffle',r:'20m each way'},{s:'carioca',r:'20m each way'},{s:'hipopen',r:'10 each leg'},{s:'hipclose',r:'10 each leg'},{s:'lungetwist',r:'10 each leg'},{s:'legswingpost',r:'10 front-back, 10 side-side, each leg'},{s:'latlunge',r:'8 each side'},{s:'buildup',r:'3 × 30m'},{s:'shuttles',r:'4 short shuttles'}]},
+  flow:{title:'Saturday recovery flow',when:'Saturday, after the bike',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'hips9090',r:'10 each side'},{s:'couch',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'deepsquat',t:90},{s:'lathang',t:30}]},
+  ankle:{title:'Ankle routine',when:'In the warm-up on Tue, Thu and Fri',g:'warm',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'}]},
+  gwarm:{title:'Gym warm-up',when:'Before every session. Moving, no holds',g:'warm',steps:[{s:'easycardio',t:180},{s:'legswing',r:'10 each way, each leg'},{s:'armcircle',r:'15 each'},{s:'bwsquat',r:'10'},{s:'rampup',r:'Build to working weight'}]},
+};
+const RGROUPS = [['after','After training'],['football','Football'],['recovery','Recovery'],['warm','Warm-ups (before training)']];
+const TODAY_ROUTINE = {0:'fpost',1:'upper',2:'lower',3:'upper',4:'lower',5:'lower',6:'flow'};
 
 // names from earlier versions of the app, so old logs still read properly
 const LEGACY = {p1_incline:'Incline bench press',p1_pecfly:'Pec fly machine',p1_chestv:'Machine chest press (vertical)',p1_chesth:'Machine chest press (horizontal)',p1_tricep:'Rope tricep pulldown',p1_lateral:'Dumbbell lateral raise',l1_lat:'Lat pulldown',l1_cable:'Bicep cable curl',l1_dbcurl:'Dumbbell curl',l1_hammer:'Cross body hammer curl',l1_shrug:'Barbell shrugs',m1_legpress:'Leg press',m1_rdl:'Dumbbell RDL',m1_hamcurl:'Hamstring curl',m1_legext:'Leg extension',m1_crunch:'Ab crunch machine',m1_hanglr:'Hanging leg raise',p2_bbpress:'Barbell shoulder press',p2_lateral:'Dumbbell lateral raise',p2_machsh:'Machine shoulder press',p2_incline:'Incline bench press',p2_tricep:'Rope tricep pulldown',l2_bbrow:'Barbell row',l2_cablerow:'Cable row',l2_lat:'Lat pulldown',l2_shrug:'Barbell shrugs',l2_cable:'Bicep cable curl',m2_dips:'Dips',m2_dbcurl:'Dumbbell curl',m2_hammer:'Cross body hammer curl',m2_crunch:'Ab crunch machine',m2_abwheel:'Ab wheel',m2_hanglr:'Hanging leg raise',t_curl:'Cable curl',t_push:'Rope pushdown',t_hammer:'Hammer curl',t_chop:'Cable woodchop',h_lat:'Lateral raise',h_face:'Face pull',h_rear:'Rear delt fly',h_row:'Cable row',c_squat:'Front squat / leg press',c_incline:'Incline bench press',c_row:'Cable row',c_lunge:'Walking lunge',a_bench:'Bench press',a_row:'Barbell row',b_ohp:'Overhead press',b_pull:'Pull-up / lat pulldown',b_bss:'Bulgarian split squat',b_plank:'Plank',a_hlr:'Hanging leg raise',c_dips:'Dips',t_wheel:'Ab wheel',cablefly:'Cable fly',backext:'45° back extension',reardelt:'Rear delt fly',tue_bike:'Easy bike',wed_run:'Run',wed_row:'Rower intervals',fri_int:'Intervals'};
@@ -379,7 +422,7 @@ const exName = id => (ALL[id]&&ALL[id].name) || LEGACY[id] || id;
 
 /* ============ STORAGE ============ */
 const KEY='gymtracker2025';
-const fresh = () => ({v:3,history:[],pbs:{},body:[],tests:[],settings:{targetWeight:75,targetFat:12},startDate:null,draft:null,food:{}});
+const fresh = () => ({v:3,history:[],pbs:{},body:[],tests:[],settings:{targetWeight:75,targetFat:12},startDate:null,draft:null,food:{},stretchLog:{}});
 let D = fresh();
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){ toast('Couldn’t save: storage is unavailable'); } }
 function migrate(o){
@@ -439,6 +482,7 @@ function header(title,sub,back){
   $('hdr').innerHTML = `<div>${bk}<div class="h-title">${esc(title)}</div>${sub?`<div class="h-sub">${esc(sub)}</div>`:''}</div>${chip}`;
 }
 function tab(t){
+  if(TAB==='routine') plStop();
   TAB=t;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   $('v-'+t).classList.add('on');
@@ -447,7 +491,7 @@ function tab(t){
   if(t==='home'){ header(DAYNAMES[new Date().getDay()], new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long'})); home(); }
   if(t==='diet'){ header('Diet','About 2,550 kcal and 165g protein a day'); diet(); }
   if(t==='progress'){ header('Progress'); progress(PSEG); }
-  if(t==='mobility'){ header('Mobility','Warm-ups before, stretches after'); mobility(); }
+  if(t==='mobility'){ header('Stretch','Guided routines with a timer'); mobility(); }
   if(t==='settings'){ header('Settings'); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
 }
 
@@ -484,7 +528,7 @@ function home(){
     const planned=S[SCHEDULE[d.getDay()]];
     const c = e.length ? (S[e[0].sessionId]||planned).color : planned.color;
     gym += e.filter(h=>h.sessionId!=='football' && h.sessionId!=='rest').length;
-    wk += `<div class="wd"><b>${'MTWTFSS'[i]}</b><i class="${e.length?'done':''}${key===t?' today':''}" style="--c:${c}">${e.length?'✓':''}</i></div>`;
+    wk += `<div class="wd"><b>${'MTWTFSS'[i]}</b><i class="${e.length?'done':''}${key===t?' now':''}" style="--c:${c}">${e.length?'✓':''}</i></div>`;
   }
   $('week').innerHTML=wk;
 
@@ -518,6 +562,7 @@ function picker(){
 /* ============ SESSION ============ */
 let CUR=null; // {sid, editTs}
 function openSession(sid){
+  if(TAB==='routine') plStop();
   const t=today(), s=S[sid];
   const existing = entriesOn(t).find(h=>h.sessionId===sid);
   if(!D.draft || D.draft.sessionId!==sid || D.draft.date!==t){
@@ -838,18 +883,119 @@ function diet(){
     </div>`;
 }
 
-/* ============ MOBILITY ============ */
-let MOB_OPEN=null; const mobDone={};
-function mobility(){
-  $('mobility').innerHTML = MOBILITY.map(m=>`
-    <div class="acc ${MOB_OPEN===m.id?'open':''}" id="m-${m.id}">
-      <button class="acc-h" data-act="acc" data-m="${m.id}"><span><strong>${esc(m.title)}</strong><small>${esc(m.sub)}</small></span><span class="chev">›</span></button>
-      <div class="acc-b">
-        ${m.items.map((it,i)=>{const k=m.id+i;return `<div class="mi ${mobDone[k]?'on':''}" data-act="mi" data-k="${k}"><div class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><div class="mt">${esc(it[0])}</div><div class="md">${esc(it[1])}</div></div></div>`}).join('')}
-        <div class="acc-foot"><button class="link" data-act="mi-reset" data-m="${m.id}">Reset ticks</button></div>
-      </div>
-    </div>`).join('') + '<p class="hint">Moving warm-ups before training and football. Holding stretches only after, or on recovery days. Stretch to mild discomfort, never pain.</p>';
+/* ============ STRETCH ============ */
+function rSegs(rid){
+  const out=[];
+  ROUTINES[rid].steps.forEach((st,si)=>{
+    if(st.r){ out.push({k:'reps',si,st,label:st.r}); return; }
+    const parts=st.parts||[null], sides=st.sides?['Left side','Right side']:[null]; let first=true;
+    parts.forEach(p=>sides.forEach(sd=>{
+      out.push({k:'prep',si,st,secs:first?6:4,label:first?'Get into position':(sd==='Right side'?'Switch sides':'Next position')});
+      out.push({k:'hold',si,st,secs:st.t,label:[p,sd].filter(Boolean).join(' · ')});
+      first=false;
+    }));
+  });
+  return out;
 }
+const rMins = rid => Math.max(1, Math.round(rSegs(rid).reduce((a,s)=>a+(s.k==='reps'?40:s.secs),0)/60));
+const rCount = rid => ROUTINES[rid].steps.length;
+const doneToday = rid => ((D.stretchLog||{})[today()]||[]).includes(rid);
+let SSEG='routines', ROPEN=null;
+function mobility(){
+  const tr=TODAY_ROUTINE[new Date().getDay()], R=ROUTINES[tr];
+  let h=`<div class="seg"><button data-act="sseg" data-p="routines" class="${SSEG==='routines'?'on':''}">Routines</button><button data-act="sseg" data-p="library" class="${SSEG==='library'?'on':''}">All stretches</button></div>`;
+  if(SSEG==='routines'){
+    h+=`<div class="card today" style="--c:var(--good)"><div class="today-day">Today's stretch</div><div class="today-name" style="font-size:24px">${esc(R.title)}</div><div class="today-focus">About ${rMins(tr)} min · ${rCount(tr)} ${ROUTINES[tr].g==='football'||ROUTINES[tr].g==='warm'?'moves':'stretches'}</div>
+      <div style="margin-top:14px">${doneToday(tr)?`<button class="btn btn-done" data-act="rstart" data-r="${tr}">Done today ✓ · do it again</button>`:`<button class="btn btn-primary" data-act="rstart" data-r="${tr}">Start guided routine</button>`}</div></div>`;
+    RGROUPS.forEach(([g,label])=>{
+      h+=`<div class="sec">${label}</div>`;
+      Object.entries(ROUTINES).filter(([,r])=>r.g===g).forEach(([id,r])=>{
+        const open=ROPEN===id;
+        h+=`<div class="card">
+          <div class="ex-h"><div><h3>${esc(r.title)}</h3><div class="sub">${esc(r.when)}</div><div class="sub">About ${rMins(id)} min · ${rCount(id)} ${g==='football'&&id==='fpre'||g==='warm'?'moves':'stretches'}</div></div>${doneToday(id)?'<span class="ex-count" style="color:var(--good)">Done today ✓</span>':''}</div>
+          <div class="btn-row"><button class="btn btn-primary" data-act="rstart" data-r="${id}">Start</button><button class="btn btn-quiet" data-act="ropen" data-r="${id}">${open?'Hide':'See'} ${g==='warm'||id==='fpre'?'moves':'stretches'}</button></div>
+          ${open?`<div style="margin-top:10px">${r.steps.map(st=>`<div class="list-row"><span>${esc(LIB[st.s].n)}</span><span class="m">${st.r?esc(st.r):st.t+' sec'+(st.sides?' each side':'')+(st.parts?' × '+st.parts.length:'')}</span></div>`).join('')}</div>`:''}
+        </div>`;
+      });
+    });
+    h+='<p class="hint">Moving warm-ups before training and football. Holding stretches only after, or on recovery days. Stretch to mild discomfort, never pain, and breathe out as you settle in.</p>';
+  } else {
+    const holds=Object.entries(LIB).filter(([,l])=>l.hold).sort((a,b)=>a[1].n.localeCompare(b[1].n));
+    h+=holds.map(([id,l])=>{
+      const used=Object.entries(ROUTINES).filter(([,r])=>r.steps.some(s=>s.s===id)).map(([,r])=>r.title);
+      return `<div class="card"><h3>${esc(l.n)}</h3><div class="sub">${esc(l.t)}</div>
+        <div class="food-lines">${l.c.map(c=>'• '+esc(c)).join('<br>')}</div>
+        ${l.x?`<div class="ex-note" style="color:var(--warn)">Avoid: ${esc(l.x)}</div>`:''}
+        <div class="ex-alt">In: ${used.map(esc).join(', ')}</div></div>`;}).join('');
+  }
+  $('mobility').innerHTML=h;
+}
+
+// ---------- GUIDED PLAYER ----------
+let PL=null, PLT=null, WL=null;
+async function wake(on){ try{ if(on && 'wakeLock' in navigator && !WL){ WL=await navigator.wakeLock.request('screen'); } if(!on && WL){ await WL.release(); WL=null; } }catch(e){} }
+function openRoutine(rid, from){
+  PL={rid, segs:rSegs(rid), i:0, left:null, end:0, run:false, from:from||'mobility', done:false};
+  PL.left = PL.segs[0].secs||null;
+  TAB='routine';
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on')); $('v-routine').classList.add('on');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.t==='mobility'));
+  header(ROUTINES[rid].title, 'About '+rMins(rid)+' min', PL.from==='session'?'session':'mobility');
+  document.querySelector('main').scrollTop=0;
+  renderPlayer();
+}
+function stepIndex(){ return PL.segs[PL.i].si; }
+function renderPlayer(){
+  const R=ROUTINES[PL.rid];
+  if(PL.done){
+    $('routine').innerHTML=`<div class="card" style="text-align:center;padding:32px 18px"><div style="font-size:44px">✓</div><h3 style="font-size:22px;margin-top:6px">${esc(R.title)} done</h3><div class="sub" style="margin-top:4px">Logged for today.</div>
+      <div class="btn-row" style="margin-top:20px"><button class="btn btn-quiet" data-act="rstart" data-r="${PL.rid}">Do it again</button><button class="btn btn-primary" data-act="${PL.from==='session'?'open':'tab'}" ${PL.from==='session'?`data-s="${CUR}"`:'data-t="mobility"'}>${PL.from==='session'?'Back to session':'All routines'}</button></div></div>`;
+    return;
+  }
+  const seg=PL.segs[PL.i], st=seg.st, L=LIB[st.s], n=R.steps.length, si=seg.si;
+  const nextSeg=PL.segs.slice(PL.i+1).find(x=>x.si!==si);
+  const pct=Math.round(PL.i/PL.segs.length*100);
+  const big = seg.k==='reps' ? `<div class="pl-reps">${esc(seg.label)}</div><button class="btn btn-primary" style="margin-top:18px" data-act="rnext">Done, next</button>`
+    : `<div class="pl-label ${seg.k==='prep'?'prep':''}">${esc(seg.label||'Hold')}</div><div class="pl-time num" id="pl-time">${fmtSecs(PL.left)}</div>
+       <div class="btn-row" style="margin-top:18px"><button class="btn btn-quiet" data-act="rprev">‹ Back</button><button class="btn btn-primary" data-act="rplay">${PL.run?'Pause':(PL.i===0&&PL.left===seg.secs?'Start':'Resume')}</button><button class="btn btn-quiet" data-act="rnext">Skip ›</button></div>`;
+  $('routine').innerHTML=`
+    <div class="bar" style="margin:0 0 14px"><i style="width:${pct}%"></i></div>
+    <div class="card pl">
+      <div class="sub">${seg.k==='reps'?'Move':'Stretch'} ${si+1} of ${n}</div>
+      <h3 class="pl-name">${esc(L.n)}</h3>
+      <div class="sub">${esc(L.t)}</div>
+      ${big}
+    </div>
+    <div class="card"><h3>How to do it</h3><div class="food-lines">${L.c.map(c=>'• '+esc(c)).join('<br>')}</div>${L.x?`<div class="ex-note" style="color:var(--warn)">Avoid: ${esc(L.x)}</div>`:''}</div>
+    ${nextSeg?`<p class="hint">Up next: ${esc(LIB[nextSeg.st.s].n)}</p>`:'<p class="hint">Last one.</p>'}
+    ${seg.k==='reps'&&PL.i>0?'<div style="text-align:center"><button class="link" data-act="rprev">‹ Previous</button></div>':''}`;
+}
+const fmtSecs = s => { s=Math.max(0,Math.ceil(s)); return s>=60 ? Math.floor(s/60)+':'+pad(s%60) : String(s); };
+function plPlay(){
+  if(PL.run){ PL.left=Math.max(0,(PL.end-Date.now())/1000); PL.run=false; clearInterval(PLT); wake(false); renderPlayer(); return; }
+  PL.run=true; PL.end=Date.now()+PL.left*1000; wake(true); clearInterval(PLT); PLT=setInterval(plTick,200); renderPlayer();
+}
+function plTick(){
+  if(!PL||!PL.run) return;
+  const left=(PL.end-Date.now())/1000; const el=$('pl-time'); if(el) el.textContent=fmtSecs(left);
+  if(left<=0){ const was=PL.segs[PL.i].k; beepN(was==='hold'?2:1); plGo(PL.i+1,true); }
+}
+function plGo(i,keepRunning){
+  if(i>=PL.segs.length){ plFinish(); return; }
+  if(i<0) i=0;
+  PL.i=i; const seg=PL.segs[i];
+  if(seg.k==='reps'){ PL.run=false; clearInterval(PLT); PL.left=null; renderPlayer(); return; }
+  PL.left=seg.secs;
+  if(keepRunning){ PL.run=true; PL.end=Date.now()+PL.left*1000; clearInterval(PLT); PLT=setInterval(plTick,200); }
+  renderPlayer();
+}
+function plFinish(){
+  clearInterval(PLT); PL.run=false; PL.done=true; wake(false); beepN(3);
+  D.stretchLog=D.stretchLog||{}; const t=today(); D.stretchLog[t]=D.stretchLog[t]||[]; if(!D.stretchLog[t].includes(PL.rid)) D.stretchLog[t].push(PL.rid); save();
+  renderPlayer();
+}
+function plStop(){ if(PL){ clearInterval(PLT); PL.run=false; } wake(false); }
+function beepN(n){ try{ if(!actx) return; for(let i=0;i<n;i++){ const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=n===1?660:880; o.connect(g); g.connect(actx.destination); const t=actx.currentTime+i*.22; g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.16); o.start(t); o.stop(t+.18);} }catch(e){} if(navigator.vibrate) navigator.vibrate(n>1?[150,80,150]:120); }
 
 /* ============ EVENTS ============ */
 document.addEventListener('click', e=>{
@@ -865,6 +1011,7 @@ document.addEventListener('click', e=>{
       if(it.type==='t'){ if(!(+set.s>0)){ toast('Enter the seconds held'); return; } }
       else { if(set.w===''||set.w==null){ if(it.type==='bw') set.w=0; else { toast('Enter the weight (0 for bodyweight)'); return; } } if(!(+set.r>0)){ toast('Enter your reps'); return; } }
       set.done=true;
+      if(it.type!=='t') D.draft.items[it.id].sets.forEach((x,j)=>{ if(j>i && !x.done && (x.w===''||x.w==null)) x.w=set.w; });
       const st=D.draft.items[it.id]; const n=st.sets.length; const next=st.sets.findIndex(x=>!x.done);
       startRest(it.rest, next===-1 ? 'Rest, then next exercise' : 'Rest before set '+(next+1));
     } else set.done=false;
@@ -876,10 +1023,13 @@ document.addEventListener('click', e=>{
   else if(a==='feel'){ D.draft.football.feel=+el.dataset.n; renderFootball(); }
   else if(a==='finish') finish();
   else if(a==='discard'){ if(confirm(D.draft.editTs?'Cancel your changes?':'Discard this session? Nothing will be saved.')){ D.draft=null; save(); stopRest(); tab('home'); } }
-  else if(a==='goto-mob'){ MOB_OPEN=el.dataset.m; const back=TAB; tab('mobility'); if(back==='session') header('Mobility','Your session is saved as you go','session'); setTimeout(()=>{const x=$('m-'+MOB_OPEN); if(x&&x.scrollIntoView) x.scrollIntoView({block:'start'})},30); }
-  else if(a==='acc'){ MOB_OPEN = MOB_OPEN===el.dataset.m?null:el.dataset.m; mobility(); }
-  else if(a==='mi'){ mobDone[el.dataset.k]=!mobDone[el.dataset.k]; el.classList.toggle('on'); }
-  else if(a==='mi-reset'){ Object.keys(mobDone).filter(k=>k.startsWith(el.dataset.m)).forEach(k=>delete mobDone[k]); mobility(); }
+  else if(a==='goto-mob'){ const m=el.dataset.m==='fpre'?'fpre':el.dataset.m; openRoutine(m, TAB==='session'?'session':'mobility'); }
+  else if(a==='sseg'){ SSEG=el.dataset.p; mobility(); }
+  else if(a==='ropen'){ ROPEN = ROPEN===el.dataset.r?null:el.dataset.r; mobility(); }
+  else if(a==='rstart') openRoutine(el.dataset.r, TAB==='routine'&&PL?PL.from:(TAB==='session'?'session':'mobility'));
+  else if(a==='rplay') plPlay();
+  else if(a==='rnext'){ const run=PL.run; plGo(PL.i+1, run); }
+  else if(a==='rprev'){ plGo(PL.i-1, PL.run); }
   else if(a==='rest-skip') stopRest();
   else if(a==='rest-add'){ rEnd+=30000; $('rest').classList.remove('over'); }
   else if(a==='food'){ const f=foodDay(today()), k=el.dataset.k, v=el.dataset.v; f[k] = f[k]===(v==='1'?true:v) ? null : (v==='1'?true:v); save(); diet(); }
