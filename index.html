@@ -811,9 +811,7 @@ const MEALS = [
     {v:'salmon',label:'Salmon day',lines:['4 eggs + 3 egg whites, oil spray','115g salmon','1 tangerine + 1 peach'],kcal:615,p:56},
     {v:'yog',label:'Yoghurt day',lines:['5 eggs + 3 egg whites, oil spray','170g 0% Greek yoghurt','1 tangerine + 1 peach'],kcal:525,p:56}]},
   {k:'lunch',time:'2pm',title:'Lunch',lines:['90g oats cooked in 1 cup oat milk (or semi-skimmed)','1.5 scoops whey','25g peanut butter','1.5 bananas'],kcal:870,p:52},
-  {k:'dinner',time:'6:30pm',title:'Dinner',opts:[
-    {v:'steak',label:'Steak',lines:['225g sirloin, dry-seared or grilled','100g avocado','Big bowl of broccoli or asparagus, roasted with 1 tsp olive oil','1 small pear + 1 orange'],kcal:890,p:55},
-    {v:'liver',label:'Liver night',lines:['125g steak + 100g chicken livers','100g avocado','Big bowl of broccoli or asparagus, roasted with 1 tsp olive oil','1 small pear + 1 orange'],kcal:835,p:47}]},
+  {k:'dinner',time:'6:30pm',title:'Dinner',lines:['225g sirloin, dry-seared or grilled','100g avocado','Big bowl of broccoli or asparagus, roasted with 1 tsp olive oil','1 small pear + 1 orange'],kcal:890,p:55},
   {k:'snack',time:'Anytime',title:'Snack (optional)',lines:['1 Nakd bar'],kcal:131,p:2,optional:true},
 ];
 const FOOTBALL_FOOD = [
@@ -838,7 +836,7 @@ function foodTotals(f){
 }
 function diet(){
   const t=today(), f=foodDay(t), dow=new Date().getDay(), tot=foodTotals(f);
-  const salmon=weekCount('bfast','salmon'), liver=weekCount('dinner','liver');
+  const salmon=weekCount('bfast','salmon');
   const card=(m)=>{
     const v=f[m.k];
     if(m.opts){
@@ -870,7 +868,6 @@ function diet(){
     <div class="card">
       <h3>This week</h3>
       <div class="list-row"><span>Salmon breakfasts</span><span class="num ${salmon>4?'up':''}">${salmon} of 4${salmon>4?' · over the limit':''}</span></div>
-      <div class="list-row"><span>Liver night</span><span class="num">${liver>=1?'Done ✓':'Not yet'}</span></div>
     </div>
     <div class="card">
       <h3>Rules</h3>
@@ -878,7 +875,7 @@ function diet(){
         Check the weekly scale average: it should drop 0.25–0.5kg a week.<br>
         Not dropping after 3 weeks? Remove the Nakd bar and half a banana at lunch.<br>
         Creatine adds about 1kg of water in the first two weeks. Don't read it as fat.<br>
-        Salmon max 4 breakfasts a week, liver once a week.
+        Salmon max 4 breakfasts a week.
       </div>
     </div>`;
 }
