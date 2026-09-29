@@ -301,7 +301,6 @@ const RX = {
 };
 // exercises whose sets and reps change week by week (they handle week 6 themselves)
 const WK = {
-  pogo:w=> w<=2||w===6 ? {sets:2,reps:'15 sec',rt:15} : {sets:3,reps:'20 sec',rt:20},
   copen:w=> w<=2 ? {sets:3,reps:'20 sec each side, knee on bench',rt:20} : w<=4 ? {sets:3,reps:'30 sec each side, knee on bench',rt:30} : w===5 ? {sets:3,reps:'20 sec each side, foot on bench',rt:20} : {sets:2,reps:'20 sec each side, knee on bench',rt:20},
   nordic:w=> [{sets:2,reps:'3',rt:3},{sets:2,reps:'4',rt:4},{sets:3,reps:'4',rt:4},{sets:3,reps:'4',rt:4},{sets:3,reps:'5',rt:5},{sets:2,reps:'3',rt:3}][w-1],
 };
@@ -317,8 +316,8 @@ const S = {
     {id:'mon_cardio',name:'Easy bike',type:'c',rx:'monCardio'},
   ]},
   lowerA:{name:'Lower A',focus:'Squat',color:'#0E9F8E',stretch:'lower',pre:true,items:[
-    {id:'pogo',name:'Pogo hops',type:'t',wk:'pogo',rest:45,warm:true,note:'Warm-up. Small, quick, springy, on the balls of your feet. Prefer no jumping? Do single-leg calf raises 3 × 12 instead.'},
-    {id:'slam',name:'Medicine ball slam',type:'w',sets:3,reps:'6',rt:6,rest:60,note:'Fast and hard, full reset each rep. Stop the set when the speed drops.'},
+    {id:'slcalf',name:'Single-leg calf raise',type:'bw',sets:2,reps:'12 each leg',rt:12,rest:45,warm:true,note:'Warm-up. Hold a wall for balance. Up on your toes, 3 seconds down, full stretch at the bottom. Hold a dumbbell once 12 is easy.'},
+    {id:'kbswingh',name:'Kettlebell swing (heavy)',type:'w',sets:3,reps:'6',rt:6,rest:90,from:'slam',note:'Heavier than Thursday, fewer reps. Snap the hips, every rep fast. Stop the set when the speed drops.'},
     {id:'squat',name:'Back squat',type:'w',sets:4,reps:'5',rt:5,rest:150,inc:5,main:true,note:'Heels on small plates if your ankles need it.',alt:'Rack taken? Heel-elevated goblet squat 4 × 8 or hack squat'},
     {id:'rdl',name:'Romanian deadlift',type:'w',sets:3,reps:'8',rt:8,rest:120},
     {id:'revlunge',name:'Dumbbell reverse lunge',type:'w',sets:3,reps:'8 each leg',rt:8,rest:90},
@@ -414,7 +413,7 @@ const RGROUPS = [['after','After training'],['football','Football'],['recovery',
 const TODAY_ROUTINE = {0:'fpost',1:'upper',2:'lower',3:'upper',4:'lower',5:'lower',6:'flow'};
 
 // names from earlier versions of the app, so old logs still read properly
-const LEGACY = {p1_incline:'Incline bench press',p1_pecfly:'Pec fly machine',p1_chestv:'Machine chest press (vertical)',p1_chesth:'Machine chest press (horizontal)',p1_tricep:'Rope tricep pulldown',p1_lateral:'Dumbbell lateral raise',l1_lat:'Lat pulldown',l1_cable:'Bicep cable curl',l1_dbcurl:'Dumbbell curl',l1_hammer:'Cross body hammer curl',l1_shrug:'Barbell shrugs',m1_legpress:'Leg press',m1_rdl:'Dumbbell RDL',m1_hamcurl:'Hamstring curl',m1_legext:'Leg extension',m1_crunch:'Ab crunch machine',m1_hanglr:'Hanging leg raise',p2_bbpress:'Barbell shoulder press',p2_lateral:'Dumbbell lateral raise',p2_machsh:'Machine shoulder press',p2_incline:'Incline bench press',p2_tricep:'Rope tricep pulldown',l2_bbrow:'Barbell row',l2_cablerow:'Cable row',l2_lat:'Lat pulldown',l2_shrug:'Barbell shrugs',l2_cable:'Bicep cable curl',m2_dips:'Dips',m2_dbcurl:'Dumbbell curl',m2_hammer:'Cross body hammer curl',m2_crunch:'Ab crunch machine',m2_abwheel:'Ab wheel',m2_hanglr:'Hanging leg raise',t_curl:'Cable curl',t_push:'Rope pushdown',t_hammer:'Hammer curl',t_chop:'Cable woodchop',h_lat:'Lateral raise',h_face:'Face pull',h_rear:'Rear delt fly',h_row:'Cable row',c_squat:'Front squat / leg press',c_incline:'Incline bench press',c_row:'Cable row',c_lunge:'Walking lunge',a_bench:'Bench press',a_row:'Barbell row',b_ohp:'Overhead press',b_pull:'Pull-up / lat pulldown',b_bss:'Bulgarian split squat',b_plank:'Plank',a_hlr:'Hanging leg raise',c_dips:'Dips',t_wheel:'Ab wheel',cablefly:'Cable fly',backext:'45° back extension',reardelt:'Rear delt fly',tue_bike:'Easy bike',wed_run:'Run',wed_row:'Rower intervals',fri_int:'Intervals'};
+const LEGACY = {slam:'Medicine ball slam',pogo:'Pogo hops',p1_incline:'Incline bench press',p1_pecfly:'Pec fly machine',p1_chestv:'Machine chest press (vertical)',p1_chesth:'Machine chest press (horizontal)',p1_tricep:'Rope tricep pulldown',p1_lateral:'Dumbbell lateral raise',l1_lat:'Lat pulldown',l1_cable:'Bicep cable curl',l1_dbcurl:'Dumbbell curl',l1_hammer:'Cross body hammer curl',l1_shrug:'Barbell shrugs',m1_legpress:'Leg press',m1_rdl:'Dumbbell RDL',m1_hamcurl:'Hamstring curl',m1_legext:'Leg extension',m1_crunch:'Ab crunch machine',m1_hanglr:'Hanging leg raise',p2_bbpress:'Barbell shoulder press',p2_lateral:'Dumbbell lateral raise',p2_machsh:'Machine shoulder press',p2_incline:'Incline bench press',p2_tricep:'Rope tricep pulldown',l2_bbrow:'Barbell row',l2_cablerow:'Cable row',l2_lat:'Lat pulldown',l2_shrug:'Barbell shrugs',l2_cable:'Bicep cable curl',m2_dips:'Dips',m2_dbcurl:'Dumbbell curl',m2_hammer:'Cross body hammer curl',m2_crunch:'Ab crunch machine',m2_abwheel:'Ab wheel',m2_hanglr:'Hanging leg raise',t_curl:'Cable curl',t_push:'Rope pushdown',t_hammer:'Hammer curl',t_chop:'Cable woodchop',h_lat:'Lateral raise',h_face:'Face pull',h_rear:'Rear delt fly',h_row:'Cable row',c_squat:'Front squat / leg press',c_incline:'Incline bench press',c_row:'Cable row',c_lunge:'Walking lunge',a_bench:'Bench press',a_row:'Barbell row',b_ohp:'Overhead press',b_pull:'Pull-up / lat pulldown',b_bss:'Bulgarian split squat',b_plank:'Plank',a_hlr:'Hanging leg raise',c_dips:'Dips',t_wheel:'Ab wheel',cablefly:'Cable fly',backext:'45° back extension',reardelt:'Rear delt fly',tue_bike:'Easy bike',wed_run:'Run',wed_row:'Rower intervals',fri_int:'Intervals'};
 const V2MAP = {a_squat:'squat',a_rdl:'rdl',b_dl:'deadlift',b_bss:'bss',a_hlr:'hlr',t_wheel:'abwheel',c_dips:'dips'};
 
 const ALL = {}; Object.values(S).forEach(s=>s.items.forEach(i=>{ if(!ALL[i.id]) ALL[i.id]=i; }));
@@ -469,6 +468,7 @@ const TICK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function better(a,b){ if(!a) return false; if(!b) return true; if(a.s!=null) return a.s>(b.s||0); return a.w>b.w || (a.w===b.w && a.r>b.r); }
 function bestSet(sets){ return (sets||[]).reduce((b,s)=>better(s,b)?s:b,null); }
 function fmtSet(id,s){ if(!s) return ''; if(s.s!=null) return s.s+' sec'; const t=(ALL[id]||{}).type; if(t==='bw') return (s.w>0?'+'+s.w+' kg':'BW')+' × '+s.r; return s.w+' kg × '+s.r; }
+function lastOf(it,exceptTs){ return lastFor(it.id,exceptTs) || (it.from ? lastFor(it.from,exceptTs) : null); }
 function lastFor(id,exceptTs){ const h=[...D.history].sort((a,b)=>b.ts-a.ts).find(h=>h.ts!==exceptTs && h.items[id] && h.items[id].sets && h.items[id].sets.length); return h?{date:h.date,sets:h.items[id].sets}:null; }
 function recalcPBs(){ const p={}; [...D.history].sort((a,b)=>a.ts-b.ts).forEach(h=>Object.entries(h.items||{}).forEach(([id,it])=>{ const b=bestSet(it.sets); if(b && better(b,p[id])) p[id]=Object.assign({},b,{date:h.date}); })); D.pbs=p; }
 const round25 = x => Math.round(x/2.5)*2.5;
@@ -585,7 +585,7 @@ function openSession(sid){
   renderSession();
 }
 function prefill(it,i){
-  const b=block(), sp=spec(it), last=lastFor(it.id, D.draft.editTs);
+  const b=block(), sp=spec(it), last=lastOf(it, D.draft.editTs);
   if(!last) return {w:'',r:sp.rt||'',s:it.type==='t'?(sp.rt||''):'',hint:''};
   const ls = last.sets[Math.min(i,last.sets.length-1)];
   if(it.type==='t') return {s: it.wk ? sp.rt : (ls.s??''), hint:''};
@@ -618,7 +618,7 @@ function renderSession(){
     const first = prefill(it,0);
     for(let i=0;i<n;i++){ if(!st.sets[i]){ const p=prefill(it,i); st.sets[i]= it.type==='t' ? {s:p.s,done:false} : {w:p.w,r:p.r,done:false}; } }
     const doneN=st.sets.filter(x=>x.done).length;
-    const last=lastFor(it.id, dr.editTs);
+    const last=lastOf(it, dr.editTs);
     const isT = it.type==='t';
     h+=`<div class="ex ${doneN>=n?'complete':''}" id="ex-${it.id}">
       <div class="ex-h"><div><div class="ex-name">${esc(it.name)}${it.main?' <span style="font-size:12px;font-weight:600;color:var(--accent)">Main lift</span>':''}${it.warm?' <span style="font-size:12px;font-weight:600;color:var(--faint)">Warm-up</span>':''}</div><div class="ex-target">${n} × ${esc(sp.reps)}</div></div><div class="ex-count num">${doneN}/${n}</div></div>
