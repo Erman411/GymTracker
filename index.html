@@ -147,6 +147,40 @@ textarea.in{resize:none;min-height:64px}
 .pl-label.prep{color:var(--warn)}
 .pl-time{font-size:84px;font-weight:750;letter-spacing:-3px;line-height:1;margin-top:6px}
 .pl-reps{font-size:30px;font-weight:700;margin-top:22px;letter-spacing:-.5px}
+.swap-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.swap-row .link{font-size:13px;padding:4px 0;white-space:nowrap}
+.swap-tag{font-size:12px;color:var(--warn)}
+.swap-list{display:flex;flex-direction:column;gap:6px;margin:8px 0 4px}
+.swap-opt{display:flex;justify-content:space-between;gap:10px;padding:11px 12px;border-radius:var(--r-sm);background:var(--surface2);border:1px solid var(--line);font-size:14px;font-weight:550;text-align:left}
+.swap-opt span:last-child{color:var(--muted);font-weight:500;white-space:nowrap}
+.swap-opt em{font-style:normal;font-size:11px;color:var(--faint);font-weight:500;margin-left:4px}
+.swap-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.wu{padding:4px 14px 6px}
+.wu-head{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:10px 0}
+.wu-chev{color:var(--faint);font-size:20px;transition:transform .2s}
+.wu-chev.open{transform:rotate(90deg)}
+.wu-row{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start}
+.wu-box{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2)}
+.wu-box svg{width:16px;height:16px;stroke:var(--faint);stroke-width:2.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.wu-row.on .wu-box{background:var(--good);border-color:var(--good)}
+.wu-row.on .wu-box svg{stroke:#fff}
+.wu-row.on .wu-t{color:var(--faint);text-decoration:line-through}
+.wu-txt{flex:1;min-width:0}
+.wu-t{font-size:15px;font-weight:600}
+.wu-d{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.45}
+.wu-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.wu-pick button{padding:9px 4px;border-radius:var(--r-sm);background:var(--surface2);border:1px solid var(--line);font-size:13px;font-weight:600}
+.wu-pick button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.wu-set{font-size:14px;line-height:1.6;margin-top:8px;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface2)}
+.ph-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ph-step{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--faint);font-weight:600;text-align:center}
+.ph-step i{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px;background:var(--surface2);border:1.5px solid var(--line)}
+.ph-step.now{color:var(--accent)}.ph-step.now i{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ph-step.done{color:var(--good)}.ph-step.done i{background:var(--good);border-color:var(--good);color:#fff}
+.ph-goal{text-align:center;font-size:13px;color:var(--muted);margin-top:12px}
+.ph-rules{margin-top:14px;border-top:1px solid var(--line);padding-top:6px}
+.ph-rules div{font-size:14px;color:var(--muted);line-height:1.5;padding:8px 0}
+.ph-rules b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
 /* rest timer */
 #rest{position:fixed;left:50%;transform:translate(-50%,calc(100% + 140px));visibility:hidden;pointer-events:none;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:min(528px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;display:flex;align-items:center;gap:12px;transition:transform .25s,visibility .25s;z-index:30}
 #rest.show{transform:translate(-50%,0);visibility:visible;pointer-events:auto}
@@ -252,7 +286,12 @@ select.in{background-image:none}
     <!-- SETTINGS -->
     <section class="view" id="v-settings">
       <div class="card">
-        <h3>Goal</h3>
+        <h3>Current phase</h3>
+        <div class="sub">Move on when you hit each phase's target. The Diet tab and Progress targets follow whichever phase you pick.</div>
+        <div class="swap-list" id="s-phases" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h3>Long-term goal</h3>
         <div class="row" style="margin-top:12px">
           <label class="field"><span>Target weight (kg)</span><input class="in num" id="s-tw" type="number" inputmode="decimal" step="0.5"></label>
           <label class="field"><span>Target body fat %</span><input class="in num" id="s-tf" type="number" inputmode="decimal" step="0.5"></label>
@@ -304,53 +343,55 @@ const WK = {
   copen:w=> w<=2 ? {sets:3,reps:'20 sec each side, knee on bench',rt:20} : w<=4 ? {sets:3,reps:'30 sec each side, knee on bench',rt:30} : w===5 ? {sets:3,reps:'20 sec each side, foot on bench',rt:20} : {sets:2,reps:'20 sec each side, knee on bench',rt:20},
   nordic:w=> [{sets:2,reps:'3',rt:3},{sets:2,reps:'4',rt:4},{sets:3,reps:'4',rt:4},{sets:3,reps:'4',rt:4},{sets:3,reps:'5',rt:5},{sets:2,reps:'3',rt:3}][w-1],
 };
-const ABWHEEL={id:'abwheel',name:'Ab wheel',type:'bw',sets:3,reps:'8–12',rt:12,rest:60};
 const S = {
   upperA:{name:'Upper A',focus:'Strength',color:'#2C5BFF',stretch:'upper',items:[
-    {id:'bench',name:'Bench press',type:'w',sets:4,reps:'5',rt:5,rest:150,inc:2.5,main:true,alt:'Rack taken? Dumbbell bench 4 × 6'},
+    {id:'bench',name:'Bench press',type:'w',bar:true,sets:4,reps:'5',rt:5,rest:150,inc:2.5,main:true},
     {id:'pullup',name:'Pull-up or lat pulldown',type:'w',sets:4,reps:'6–8',rt:8,rest:150,main:true,note:'Log 0 kg for bodyweight pull-ups. Add weight once 4 × 8 is easy.'},
     {id:'dbpress',name:'Seated dumbbell shoulder press',type:'w',sets:3,reps:'8–10',rt:10,rest:90},
     {id:'csrow',name:'Chest-supported dumbbell row',type:'w',sets:3,reps:'8–10',rt:10,rest:90},
+    {id:'cablefly',name:'Cable fly',type:'w',sets:3,reps:'12',rt:12,rest:60,note:'Slight bend in the elbows, squeeze the chest at the middle, slow on the way back.'},
     {id:'latraise',name:'Lateral raise',type:'w',sets:4,reps:'12–15',rt:15,rest:0,note:'Superset: go straight into face pull.'},
     {id:'facepull',name:'Face pull',type:'w',sets:3,reps:'15',rt:15,rest:60},
+    {id:'ohtri',name:'Overhead triceps extension',type:'w',sets:3,reps:'12',rt:12,rest:0,note:'Cable or dumbbell. Superset: go straight into incline dumbbell curl.'},
+    {id:'inclinecurl',name:'Incline dumbbell curl',type:'w',sets:3,reps:'12',rt:12,rest:60,note:'Lie back on a bench at about 45°, arms hanging straight down, curl without swinging.'},
     {id:'mon_cardio',name:'Easy bike',type:'c',rx:'monCardio'},
   ]},
   lowerA:{name:'Lower A',focus:'Squat',color:'#0E9F8E',stretch:'lower',pre:true,items:[
-    {id:'slcalf',name:'Single-leg calf raise',type:'bw',sets:2,reps:'12 each leg',rt:12,rest:45,warm:true,note:'Warm-up. Hold a wall for balance. Up on your toes, 3 seconds down, full stretch at the bottom. Hold a dumbbell once 12 is easy.'},
+    {id:'slcalf',name:'Single-leg calf raise',type:'bw',sets:2,reps:'12 each leg',rt:12,rest:45,warm:true,note:'Hold a wall for balance. Up on your toes, 3 seconds down, full stretch at the bottom. Hold a dumbbell once 12 is easy.'},
     {id:'kbswingh',name:'Kettlebell swing (heavy)',type:'w',sets:3,reps:'6',rt:6,rest:90,from:'slam',note:'Heavier than Thursday, fewer reps. Snap the hips, every rep fast. Stop the set when the speed drops.'},
-    {id:'squat',name:'Back squat',type:'w',sets:4,reps:'5',rt:5,rest:150,inc:5,main:true,note:'Heels on small plates if your ankles need it.',alt:'Rack taken? Heel-elevated goblet squat 4 × 8 or hack squat'},
+    {id:'squat',name:'Back squat',type:'w',bar:true,sets:4,reps:'5',rt:5,rest:150,inc:5,main:true,note:'Heels on small plates if your ankles need it.'},
     {id:'rdl',name:'Romanian deadlift',type:'w',sets:3,reps:'8',rt:8,rest:120},
     {id:'revlunge',name:'Dumbbell reverse lunge',type:'w',sets:3,reps:'8 each leg',rt:8,rest:90},
-    {id:'legcurl',name:'Leg curl',type:'w',sets:3,reps:'10–12',rt:12,rest:60},
-    {id:'hlr',name:'Hanging leg raise',type:'bw',sets:3,reps:'10–15',rt:15,rest:60},
+    {id:'legcurl',name:'Leg curl',type:'w',sets:3,reps:'10–12',rt:12,rest:60,note:'Hamstrings: bend the knee, heel towards your glutes.'},
+    {id:'hlr',name:'Leg raise (any level)',type:'bw',sets:3,reps:'10–15',rt:15,rest:60,note:'Work up the levels: reverse crunch → captain\'s chair knee raise → hanging knee raise → hanging leg raise. Move up once 3 × 15 is clean. Swap to log the level you did.'},
   ]},
   upperB:{name:'Upper B',focus:'Size + shape',color:'#7A4FD6',stretch:'upper',pre:true,items:[
     {id:'inclinedb',name:'Incline dumbbell press',type:'w',sets:4,reps:'8–10',rt:10,rest:120,main:true},
-    {id:'bbrow',name:'Barbell row',type:'w',sets:3,reps:'8–10',rt:10,rest:120,main:true,alt:'Rack taken? Chest-supported dumbbell row 3 × 10'},
+    {id:'bbrow',name:'Barbell row',type:'w',bar:true,sets:3,reps:'8–10',rt:10,rest:120,main:true},
     {id:'widepd',name:'Wide-grip lat pulldown',type:'w',sets:3,reps:'10–12',rt:12,rest:90},
     {id:'dips',name:'Dips',type:'bw',sets:3,reps:'8–12',rt:12,rest:90,note:'Add weight once 12 is easy.'},
     {id:'cablelat',name:'Cable lateral raise',type:'w',sets:4,reps:'12–15',rt:15,rest:60},
     {id:'bbcurl',name:'Barbell curl',type:'w',sets:3,reps:'10–12',rt:12,rest:0,note:'Superset: go straight into rope pushdown.'},
     {id:'pushdown',name:'Rope pushdown',type:'w',sets:3,reps:'10–12',rt:12,rest:60},
-    {id:'wed_int',name:'Sprint intervals',type:'c',rx:'wedInt'},
+    {id:'wed_int',name:'Sprint intervals',type:'c',rx:'wedInt',note:'Bike: level 13 hard, level 4 easy. Push 95+ rpm on the hard rounds and watch the watts during them (aim 250+), not the average at the end.'},
   ]},
   lowerB:{name:'Lower B',focus:'Hinge + football-proofing',color:'#2E9E4F',stretch:'lower',pre:true,items:[
-    {id:'copen',name:'Copenhagen plank',type:'t',wk:'copen',rest:45,warm:true,note:'Warm-up. Side plank with your top leg on a bench, bottom leg hanging. Log seconds per side.'},
+    {id:'copen',name:'Copenhagen plank',type:'t',wk:'copen',rest:45,warm:true,note:'Side plank with your top leg on a bench, bottom leg hanging. Log seconds per side.'},
     {id:'kbswing',name:'Kettlebell swing',type:'w',sets:3,reps:'10',rt:10,rest:60,note:'Explosive hips, not a squat.'},
-    {id:'deadlift',name:'Deadlift',type:'w',sets:4,reps:'4',rt:4,rest:150,inc:5,main:true,note:'Trap bar if available.',alt:'Platform taken? Dumbbell RDL 4 × 8'},
+    {id:'deadlift',name:'Deadlift',type:'w',bar:true,sets:4,reps:'4',rt:4,rest:150,inc:5,main:true,note:'Trap bar if available.'},
     {id:'bss',name:'Bulgarian split squat',type:'w',sets:3,reps:'8 each leg',rt:8,rest:90},
-    {id:'nordic',name:'Nordic hamstring curl',type:'bw',wk:'nordic',rest:120,note:'Ankles anchored. Lower as slowly as you can, catch yourself, push back up. Expect sore hamstrings at first.'},
+    {id:'nordic',name:'Nordic hamstring curl',type:'bw',wk:'nordic',rest:120,note:'Hook your heels under a lat pulldown pad, a locked Smith bar or a loaded barbell, pad under your knees. Lower as slowly as you can, catch yourself, push back up.'},
     {id:'pallof',name:'Pallof press',type:'w',sets:3,reps:'10 each side',rt:10,rest:45},
   ]},
   engine:{name:'Engine day',focus:'Run, intervals, core',color:'#E4572E',stretch:'lower',items:[
-    {id:'fri_run',name:'Run',type:'c',rx:'friRun'},
-    {id:'fri_row',name:'Rower intervals',type:'c',rx:'friRow'},
-    ABWHEEL,
+    {id:'fri_run',name:'Run',type:'c',rx:'friRun',note:'Easy: you can talk in full sentences. Treadmill at 1%, run about 5–6mph, walk about 3.5mph. Progress by time, not speed.'},
+    {id:'fri_row',name:'Rower intervals',type:'c',rx:'friRow',note:'Damper 4–6. Same pace every round, about 2:03–2:05 per 500m to start. Round 1 should feel almost too easy. Note your average hard split.'},
+    {id:'abcrunch',name:'Ab crunch machine',type:'w',sets:3,reps:'10–15',rt:15,rest:60,from:'abwheel',note:'Curl your ribs towards your hips, don\'t pull with your arms, 2 seconds back up.'},
     {id:'sideplank',name:'Side plank',type:'t',sets:3,reps:'30–45 sec each side',rt:45,rest:45},
   ]},
   recovery:{name:'Recovery',focus:'Easy bike + mobility',color:'#7B8794',stretch:null,items:[
     {id:'sat_bike',name:'Easy bike',type:'c',rx:'30 min, conversational pace. No legs, no running.'},
-    {id:'sat_flow',name:'Recovery mobility flow',type:'c',rx:'About 15 min, in the Mobility tab',link:'flow'},
+    {id:'sat_flow',name:'Recovery mobility flow',type:'c',rx:'About 15 min, in the Stretch tab',link:'flow'},
   ]},
   football:{name:'Football',focus:'11-a-side, 90 min',color:'#1B7F3B',football:true,items:[]},
 };
@@ -413,15 +454,60 @@ const RGROUPS = [['after','After training'],['football','Football'],['recovery',
 const TODAY_ROUTINE = {0:'fpost',1:'upper',2:'lower',3:'upper',4:'lower',5:'lower',6:'flow'};
 
 // names from earlier versions of the app, so old logs still read properly
-const LEGACY = {slam:'Medicine ball slam',pogo:'Pogo hops',p1_incline:'Incline bench press',p1_pecfly:'Pec fly machine',p1_chestv:'Machine chest press (vertical)',p1_chesth:'Machine chest press (horizontal)',p1_tricep:'Rope tricep pulldown',p1_lateral:'Dumbbell lateral raise',l1_lat:'Lat pulldown',l1_cable:'Bicep cable curl',l1_dbcurl:'Dumbbell curl',l1_hammer:'Cross body hammer curl',l1_shrug:'Barbell shrugs',m1_legpress:'Leg press',m1_rdl:'Dumbbell RDL',m1_hamcurl:'Hamstring curl',m1_legext:'Leg extension',m1_crunch:'Ab crunch machine',m1_hanglr:'Hanging leg raise',p2_bbpress:'Barbell shoulder press',p2_lateral:'Dumbbell lateral raise',p2_machsh:'Machine shoulder press',p2_incline:'Incline bench press',p2_tricep:'Rope tricep pulldown',l2_bbrow:'Barbell row',l2_cablerow:'Cable row',l2_lat:'Lat pulldown',l2_shrug:'Barbell shrugs',l2_cable:'Bicep cable curl',m2_dips:'Dips',m2_dbcurl:'Dumbbell curl',m2_hammer:'Cross body hammer curl',m2_crunch:'Ab crunch machine',m2_abwheel:'Ab wheel',m2_hanglr:'Hanging leg raise',t_curl:'Cable curl',t_push:'Rope pushdown',t_hammer:'Hammer curl',t_chop:'Cable woodchop',h_lat:'Lateral raise',h_face:'Face pull',h_rear:'Rear delt fly',h_row:'Cable row',c_squat:'Front squat / leg press',c_incline:'Incline bench press',c_row:'Cable row',c_lunge:'Walking lunge',a_bench:'Bench press',a_row:'Barbell row',b_ohp:'Overhead press',b_pull:'Pull-up / lat pulldown',b_bss:'Bulgarian split squat',b_plank:'Plank',a_hlr:'Hanging leg raise',c_dips:'Dips',t_wheel:'Ab wheel',cablefly:'Cable fly',backext:'45° back extension',reardelt:'Rear delt fly',tue_bike:'Easy bike',wed_run:'Run',wed_row:'Rower intervals',fri_int:'Intervals'};
+const LEGACY = {abwheel:'Ab wheel',slam:'Medicine ball slam',pogo:'Pogo hops',p1_incline:'Incline bench press',p1_pecfly:'Pec fly machine',p1_chestv:'Machine chest press (vertical)',p1_chesth:'Machine chest press (horizontal)',p1_tricep:'Rope tricep pulldown',p1_lateral:'Dumbbell lateral raise',l1_lat:'Lat pulldown',l1_cable:'Bicep cable curl',l1_dbcurl:'Dumbbell curl',l1_hammer:'Cross body hammer curl',l1_shrug:'Barbell shrugs',m1_legpress:'Leg press',m1_rdl:'Dumbbell RDL',m1_hamcurl:'Hamstring curl',m1_legext:'Leg extension',m1_crunch:'Ab crunch machine',m1_hanglr:'Hanging leg raise',p2_bbpress:'Barbell shoulder press',p2_lateral:'Dumbbell lateral raise',p2_machsh:'Machine shoulder press',p2_incline:'Incline bench press',p2_tricep:'Rope tricep pulldown',l2_bbrow:'Barbell row',l2_cablerow:'Cable row',l2_lat:'Lat pulldown',l2_shrug:'Barbell shrugs',l2_cable:'Bicep cable curl',m2_dips:'Dips',m2_dbcurl:'Dumbbell curl',m2_hammer:'Cross body hammer curl',m2_crunch:'Ab crunch machine',m2_abwheel:'Ab wheel',m2_hanglr:'Hanging leg raise',t_curl:'Cable curl',t_push:'Rope pushdown',t_hammer:'Hammer curl',t_chop:'Cable woodchop',h_lat:'Lateral raise',h_face:'Face pull',h_rear:'Rear delt fly',h_row:'Cable row',c_squat:'Front squat / leg press',c_incline:'Incline bench press',c_row:'Cable row',c_lunge:'Walking lunge',a_bench:'Bench press',a_row:'Barbell row',b_ohp:'Overhead press',b_pull:'Pull-up / lat pulldown',b_bss:'Bulgarian split squat',b_plank:'Plank',a_hlr:'Hanging leg raise',c_dips:'Dips',t_wheel:'Ab wheel',cablefly:'Cable fly',backext:'45° back extension',reardelt:'Rear delt fly',tue_bike:'Easy bike',wed_run:'Run',wed_row:'Rower intervals',fri_int:'Intervals'};
 const V2MAP = {a_squat:'squat',a_rdl:'rdl',b_dl:'deadlift',b_bss:'bss',a_hlr:'hlr',t_wheel:'abwheel',c_dips:'dips'};
 
 const ALL = {}; Object.values(S).forEach(s=>s.items.forEach(i=>{ if(!ALL[i.id]) ALL[i.id]=i; }));
+// ---------- SUBSTITUTES ----------
+// each swap is tracked separately, so weights for different exercises never get mixed up
+const SUBS = {
+  bench:[{k:'db',n:'Dumbbell bench press',reps:'6',rt:6},{k:'mach',n:'Machine chest press',reps:'6–8',rt:8},{k:'push',n:'Push-up',type:'bw',reps:'10–20',rt:20}],
+  pullup:[{k:'pd',n:'Lat pulldown',reps:'8',rt:8},{k:'assist',n:'Assisted pull-up machine',reps:'6–8',rt:8}],
+  dbpress:[{k:'mach',n:'Machine shoulder press'},{k:'bb',n:'Barbell overhead press',reps:'6–8',rt:8}],
+  csrow:[{k:'cable',n:'Seated cable row'},{k:'mach',n:'Machine row'},{k:'sa',n:'Single-arm dumbbell row',reps:'10 each arm'}],
+  cablefly:[{k:'pec',n:'Pec deck machine'},{k:'db',n:'Dumbbell fly'}],
+  latraise:[{k:'cable',n:'Cable lateral raise'},{k:'mach',n:'Machine lateral raise'}],
+  facepull:[{k:'rdf',n:'Rear delt fly'},{k:'band',n:'Band pull-apart',type:'bw',reps:'20',rt:20}],
+  ohtri:[{k:'rope',n:'Rope pushdown'},{k:'skull',n:'EZ-bar skull crusher',reps:'10',rt:10}],
+  inclinecurl:[{k:'db',n:'Dumbbell curl'},{k:'cable',n:'Cable curl'},{k:'hammer',n:'Hammer curl'}],
+  slcalf:[{k:'mach',n:'Standing calf raise machine',type:'w'},{k:'seat',n:'Seated calf raise',type:'w',reps:'12',rt:12}],
+  kbswingh:[{k:'db',n:'Dumbbell swing (heavy)'},{k:'pp',n:'Dumbbell push press',reps:'5',rt:5},{k:'pt',n:'Cable pull-through',reps:'10',rt:10}],
+  squat:[{k:'goblet',n:'Heel-elevated goblet squat',reps:'8',rt:8},{k:'hack',n:'Hack squat',reps:'6',rt:6},{k:'lp',n:'Leg press',reps:'8',rt:8}],
+  rdl:[{k:'db',n:'Dumbbell RDL'},{k:'pt',n:'Cable pull-through',reps:'12',rt:12},{k:'sl',n:'Single-leg RDL',reps:'8 each leg'}],
+  revlunge:[{k:'walk',n:'Walking lunge'},{k:'split',n:'Split squat'},{k:'step',n:'Step-up'}],
+  legcurl:[{k:'seat',n:'Seated leg curl'},{k:'lying',n:'Lying leg curl'},{k:'ball',n:'Swiss ball hamstring curl',type:'bw',reps:'12',rt:12}],
+  hlr:[{k:'rev',n:'Reverse crunch'},{k:'chair',n:'Captain\'s chair knee raise'},{k:'hknee',n:'Hanging knee raise'}],
+  inclinedb:[{k:'bb',n:'Incline barbell bench',reps:'6–8',rt:8},{k:'mach',n:'Incline machine press'},{k:'flat',n:'Flat dumbbell press'}],
+  bbrow:[{k:'cs',n:'Chest-supported dumbbell row',reps:'10',rt:10},{k:'cable',n:'Seated cable row'},{k:'tbar',n:'T-bar row'}],
+  widepd:[{k:'pu',n:'Pull-up',type:'bw',reps:'6–10',rt:10},{k:'sa',n:'Single-arm lat pulldown',reps:'10 each arm',rt:10},{k:'sap',n:'Straight-arm pulldown',reps:'12–15',rt:15}],
+  dips:[{k:'assist',n:'Assisted dip machine',type:'w'},{k:'cgb',n:'Close-grip bench press',type:'w',reps:'8',rt:8},{k:'mach',n:'Machine dip',type:'w'}],
+  cablelat:[{k:'db',n:'Dumbbell lateral raise'},{k:'mach',n:'Machine lateral raise'}],
+  bbcurl:[{k:'ez',n:'EZ-bar curl'},{k:'db',n:'Dumbbell curl'},{k:'cable',n:'Cable curl'}],
+  pushdown:[{k:'bar',n:'Straight-bar pushdown'},{k:'oh',n:'Overhead cable extension'}],
+  copen:[{k:'sp',n:'Side plank',sets:3,reps:'30 sec each side',rt:30},{k:'add',n:'Adductor machine',type:'w',sets:3,reps:'12',rt:12}],
+  kbswing:[{k:'db',n:'Dumbbell swing'},{k:'pt',n:'Cable pull-through',reps:'12',rt:12}],
+  deadlift:[{k:'trap',n:'Trap bar deadlift'},{k:'dbrdl',n:'Dumbbell RDL',reps:'8',rt:8}],
+  bss:[{k:'rev',n:'Dumbbell reverse lunge'},{k:'split',n:'Split squat'},{k:'step',n:'Step-up'}],
+  nordic:[{k:'ecc',n:'Eccentric single-leg leg curl',type:'w',sets:3,reps:'6 each leg, 4 sec down',rt:6},{k:'ball',n:'Swiss ball hamstring curl',sets:3,reps:'12',rt:12}],
+  pallof:[{k:'db',n:'Dead bug',type:'bw',reps:'10 each side'},{k:'chop',n:'Cable woodchop',reps:'12 each side',rt:12}],
+  abcrunch:[{k:'cable',n:'Cable crunch'},{k:'roll',n:'Barbell rollout',type:'bw',reps:'8–12',rt:12},{k:'ball',n:'Stability ball rollout',type:'bw',reps:'10',rt:10}],
+  sideplank:[{k:'copen',n:'Copenhagen plank (knee on bench)',reps:'20–30 sec each side',rt:30},{k:'pallof',n:'Pallof press',type:'w',reps:'10 each side',rt:10}],
+};
+function subItem(p,s){ return Object.assign({},p,{wk:undefined,inc:undefined,from:undefined,note:undefined,bar:undefined},s,{id:p.id+'~'+s.k,name:s.n,parent:p.id}); }
+Object.values(S).forEach(sess=>sess.items.forEach(p=>(SUBS[p.id]||[]).forEach(s=>{ ALL[p.id+'~'+s.k]=subItem(p,s); })));
+function swapOf(pid){ const dr=D.draft, list=SUBS[pid]||[]; let k = dr && dr.swap && dr.swap[pid]!=null ? dr.swap[pid] : ((D.swaps||{})[pid]||0); return k>list.length?0:k; }
+function eff(p){ const k=swapOf(p.id); return k ? ALL[p.id+'~'+SUBS[p.id][k-1].k] : p; }
+let SWAPOPEN=null;
+function swapPicker(p,cur){
+  const opts=[p].concat((SUBS[p.id]||[]).map(s=>ALL[p.id+'~'+s.k]));
+  return `<div class="swap-list">`+opts.map((o,i)=>{ const sp=spec(o); return `<button class="swap-opt ${o.id===cur.id?'on':''}" data-act="swapset" data-id="${p.id}" data-k="${i}"><span>${esc(o.name)}${i===0?' <em>planned</em>':''}</span><span class="num">${sp.sets} × ${esc(sp.reps)}</span></button>`; }).join('')+`</div>`;
+}
+
 const exName = id => (ALL[id]&&ALL[id].name) || LEGACY[id] || id;
 
 /* ============ STORAGE ============ */
 const KEY='gymtracker2025';
-const fresh = () => ({v:3,history:[],pbs:{},body:[],tests:[],settings:{targetWeight:75,targetFat:12},startDate:null,draft:null,food:{},stretchLog:{}});
+const fresh = () => ({v:3,history:[],pbs:{},body:[],tests:[],settings:{targetWeight:80,targetFat:12,phase:1,phaseStart:null},startDate:null,draft:null,food:{},stretchLog:{},swaps:{}});
 let D = fresh();
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){ toast('Couldn’t save: storage is unavailable'); } }
 function migrate(o){
@@ -443,7 +529,9 @@ function migrate(o){
   (o.bodyLog||[]).forEach(b=>n.body.push({date:b.date,w:b.weight??null,bf:b.fat??null}));
   D=n; recalcPBs(); return D;
 }
-(function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ D=migrate(JSON.parse(raw)); save(); } }catch(e){ D=fresh(); } })();
+(function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ D=migrate(JSON.parse(raw)); save(); } }catch(e){ D=fresh(); }
+  if(!D.settings.phase){ D.settings.phase=1; D.settings.phaseStart=D.startDate||null; if(D.settings.targetWeight===75) D.settings.targetWeight=80; D.settings.targetFat=D.settings.targetFat||12; try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){} }
+})();
 
 /* ============ DATES ============ */
 const pad=n=>String(n).padStart(2,'0');
@@ -489,10 +577,10 @@ function tab(t){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   document.querySelector('main').scrollTop=0;
   if(t==='home'){ header(DAYNAMES[new Date().getDay()], new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long'})); home(); }
-  if(t==='diet'){ header('Diet','About 2,550 kcal and 165g protein a day'); diet(); }
+  if(t==='diet'){ header('Diet','Phase '+phaseN()+': about '+PH().kcal.toLocaleString()+' kcal and 165g protein a day'); diet(); }
   if(t==='progress'){ header('Progress'); progress(PSEG); }
   if(t==='mobility'){ header('Stretch','Guided routines with a timer'); mobility(); }
-  if(t==='settings'){ header('Settings'); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
+  if(t==='settings'){ header('Settings'); $('s-phases').innerHTML=phasePicker(); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
 }
 
 /* ============ HOME ============ */
@@ -502,7 +590,7 @@ function home(){
   const done = entriesOn(t).some(h=>h.sessionId===sid);
   const draft = D.draft && D.draft.date===t;
   const preview = s.football ? 'Warm up on the pitch, play, cool down after.' :
-    s.items.map(i=>{const p=i.type==='c'?null:spec(i);return esc(i.name)+(i.type==='c'?': '+esc(rx(i)):' '+p.sets+' × '+esc(p.reps));}).join('<br>');
+    s.items.map(i0=>{const i=i0.type==='c'?i0:eff(i0);const p=i.type==='c'?null:spec(i);return esc(i.name)+(i.type==='c'?': '+esc(rx(i)):' '+p.sets+' × '+esc(p.reps));}).join('<br>');
   let btns = done
     ? `<button class="btn btn-done" data-act="open" data-s="${sid}">Done ✓ · view or add</button>`
     : draft ? `<button class="btn btn-primary" data-act="open" data-s="${D.draft.sessionId}">Continue ${esc(S[D.draft.sessionId].name)}</button>`
@@ -548,7 +636,7 @@ function home(){
     <div class="stat"><div class="stat-v num">${gym}<small>/ 6</small></div><div class="stat-l">Sessions this week</div><div class="stat-d">Plus football on Sunday</div></div>
     <div class="stat"><div class="stat-v num">${streak}<small>${streak===1?'day':'days'}</small></div><div class="stat-l">Streak</div><div class="stat-d">Never miss twice in a row</div></div>
     <div class="stat"><div class="stat-v num">${a1!=null?a1.toFixed(1):'–'}<small>kg</small></div><div class="stat-l">7-day average</div><div class="stat-d ${diff==null?'':diff>0?'up':'down'}">${diff==null?'Needs two weeks of weigh-ins':(diff>0?'+':'')+diff.toFixed(2)+' kg vs last week'}</div></div>
-    <div class="stat"><div class="stat-v num">${lastBf!=null?lastBf.toFixed(1):'–'}<small>%</small></div><div class="stat-l">Body fat</div><div class="stat-d">Goal ${D.settings.targetWeight} kg at ${D.settings.targetFat}%</div></div>`;
+    <div class="stat"><div class="stat-v num">${lastBf!=null?lastBf.toFixed(1):'–'}<small>%</small></div><div class="stat-l">Body fat</div><div class="stat-d">Phase ${phaseN()}: ${PH().name} · goal ${D.settings.targetWeight} kg at ${D.settings.targetFat}%</div></div>`;
 
   // recent PBs
   const pbs=Object.entries(D.pbs).filter(([id])=>ALL[id]).sort((a,b)=>b[1].date.localeCompare(a[1].date)).slice(0,4);
@@ -603,12 +691,15 @@ function renderSession(){
   if(b.deload) h+='<div class="banner warn">Deload week: about 60% of your weights, 2 sets per exercise. Weights below are already reduced.</div>';
   if(dr.editTs) h+='<div class="banner info">You already logged this today. Changes here update that entry.</div>';
   if(s.pre && !dr.editTs) h+='<div class="banner info">Before you start: 20–25g fast carbs 20 min before (banana, dates, or rice cake with honey).</div>';
+  const WU_AT = h.length;
   h+='<p class="hint" style="margin:0 4px 12px">Main lifts: stop with 1–3 reps left. Everything else: last set should leave 0–1 reps. A set only counts if it\'s hard.</p>';
-  s.items.forEach(it=>{
+  s.items.forEach(p=>{
+    const it = p.type==='c' ? p : eff(p);
     const st = dr.items[it.id] || (dr.items[it.id] = it.type==='c'?{done:false}:{sets:[]});
     if(it.type==='c'){
       h+=`<div class="ex ${st.done?'complete':''}" id="ex-${it.id}">
         <div class="ex-h"><div><div class="ex-name">${esc(it.name)}</div></div></div>
+        ${it.note?`<div class="ex-note">${esc(it.note)}</div>`:''}
         <div class="cardio ${st.done?'on':''}"><div class="rx">${esc(rx(it))}</div><button class="tick" data-act="cdone" data-id="${it.id}">${TICK}<span>${st.done?'Done':'Mark done'}</span></button></div>
         ${it.link?`<button class="link" style="margin-top:8px" data-act="goto-mob" data-m="${it.link}">Open the flow</button>`:''}
       </div>`;
@@ -622,6 +713,7 @@ function renderSession(){
     const isT = it.type==='t';
     h+=`<div class="ex ${doneN>=n?'complete':''}" id="ex-${it.id}">
       <div class="ex-h"><div><div class="ex-name">${esc(it.name)}${it.main?' <span style="font-size:12px;font-weight:600;color:var(--accent)">Main lift</span>':''}${it.warm?' <span style="font-size:12px;font-weight:600;color:var(--faint)">Warm-up</span>':''}</div><div class="ex-target">${n} × ${esc(sp.reps)}</div></div><div class="ex-count num">${doneN}/${n}</div></div>
+      ${SUBS[p.id]?`<div class="swap-row">${it!==p?`<span class="swap-tag">Instead of ${esc(p.name)}</span>`:'<span></span>'}<button class="link" data-act="swapopen" data-id="${p.id}">${SWAPOPEN===p.id?'Close':(it!==p?'↻ Change':'↻ Swap')}</button></div>${SWAPOPEN===p.id?swapPicker(p,it):''}`:''}
       ${it.note?`<div class="ex-note">${esc(it.note)}</div>`:''}
       ${last?`<div class="ex-last num">Last time (${fmt(last.date,{day:'numeric',month:'short'})}): ${last.sets.map(x=>fmtSet(it.id,x)).join(', ')}</div>`:'<div class="ex-last">First time: pick a weight you could do 2–3 more reps with.</div>'}
       ${first.hint && doneN===0?`<div class="ex-hint">${esc(first.hint)}</div>`:''}
@@ -639,6 +731,7 @@ function renderSession(){
       <div style="display:flex;justify-content:flex-end"><button class="link" style="padding:6px 0" data-act="addset" data-id="${it.id}">+ Add set</button></div>
     </div>`;
   });
+  { const wc = warmCard(CUR); h = h.slice(0,WU_AT) + wc + h.slice(WU_AT); }
   if(s.stretch) h+=`<button class="then" data-act="goto-mob" data-m="${s.stretch}"><span><small>Then finish with</small><strong>${s.stretch==='upper'?'Upper':'Lower'} body stretch</strong></span><span style="color:var(--faint);font-size:20px">›</span></button>`;
   h+=`<label class="field"><span>Notes (optional)</span><textarea class="in" data-in="note" placeholder="How did it feel? Anything to remember next time?">${esc(dr.note)}</textarea></label>
       <button class="btn btn-primary" style="margin-top:14px" data-act="finish">${dr.editTs?'Update session':'Finish session'}</button>
@@ -733,14 +826,8 @@ function pBody(){
   // 7-day rolling average for the chart
   const pts = ws.slice(-45).map(b=>{ const from=new Date(parse(b.date)); from.setDate(from.getDate()-6); const f=ds(from); const v=ws.filter(x=>x.date>=f&&x.date<=b.date).map(x=>x.w); return {y:v.reduce((a,c)=>a+c,0)/v.length,l:fmt(b.date,{day:'numeric',month:'short'})}; });
   $('p-body').innerHTML=`
-    <div class="card">
-      <h3>Goal: ${tw} kg at ${tf}%</h3>
-      <div class="goal-l"><span>Weight</span><span class="num">${lastW!=null?lastW.toFixed(1)+' kg · '+Math.abs(lastW-tw).toFixed(1)+' kg to go':'No weigh-ins yet'}</span></div>
-      <div class="bar"><i style="width:${pw}%"></i></div>
-      <div class="goal-l"><span>Body fat</span><span class="num">${lastF!=null?lastF.toFixed(1)+'% · '+Math.max(0,lastF-tf).toFixed(1)+'% to go':'No readings yet'}</span></div>
-      <div class="bar"><i style="width:${pf}%;background:var(--good)"></i></div>
-    </div>
-    <div class="card"><h3>Weight, 7-day average</h3><div class="sub">Dotted line is your target</div><canvas id="c-weight" style="margin-top:10px"></canvas></div>
+    ${phaseCard(true)}
+    <div class="card"><h3>Weight, 7-day average</h3><div class="sub">Dotted line is your phase ${phaseN()} target</div><canvas id="c-weight" style="margin-top:10px"></canvas></div>
     <div class="card">
       <h3>Log stats</h3>
       <div class="row" style="margin-top:12px">
@@ -750,7 +837,7 @@ function pBody(){
       <button class="btn btn-quiet" style="margin-top:10px" data-act="save-body" data-src="b">Save</button>
     </div>
     <div class="card"><h3>Entries</h3><div style="margin-top:6px">${D.body.length?[...D.body].reverse().slice(0,14).map(b=>`<div class="list-row"><span>${fmt(b.date)}</span><span class="num">${b.w?b.w.toFixed(1)+' kg':''}${b.bf?' <span class="m">· '+b.bf.toFixed(1)+'%</span>':''} <button class="link red" style="margin-left:10px" data-act="del-body" data-d="${b.date}">✕</button></span></div>`).join(''):'<div class="sub">Nothing logged yet.</div>'}</div></div>`;
-  chart($('c-weight'), pts, tw);
+  chart($('c-weight'), pts, PH().w);
 }
 function pLifts(){
   const ids=Object.keys(ALL).filter(id=>ALL[id].type!=='c' && D.history.some(h=>h.items[id]&&h.items[id].sets));
@@ -801,6 +888,72 @@ function pHistory(){
       </div>
       <button class="link" style="margin-top:6px;font-size:13px" data-act="toggle-hist" data-ts="${h.ts}">Details</button>
     </div>`;}).join('');
+}
+
+/* ============ PHASES ============ */
+const PHASES = [
+  {n:1,name:'Recomp',short:'Lose fat, build muscle',w:76,bf:15,time:'About 4–6 months',kcal:2550,
+   aim:'Get to about 76kg at 15% body fat',
+   scale:'Weekly scale average drifts down slowly, about 0.1–0.25kg a week, while your lifts go up.',
+   train:'Train the plan exactly as it is.',
+   food:'Eat the full menu, about 2,550 kcal.',
+   fix:'Not dropping after 3 weeks? Remove the Nakd bar and half a banana at lunch.'},
+  {n:2,name:'Lean build',short:'Add muscle slowly',w:82.5,bf:15,time:'About 15–20 months',kcal:2950,
+   aim:'Build up to about 82–83kg, keeping body fat around 15%',
+   scale:'Weekly scale average climbs slowly, about 0.25–0.5kg a month. Faster than that is mostly fat.',
+   train:'Add 1 set to squats, lunges and split squats so your legs grow in proportion. Everything else stays the same.',
+   food:'About 400 kcal more than phase 1: 150g cooked rice with dinner, plus 1 extra egg and 20g more oats.',
+   fix:'Not climbing after 3 weeks? Add another 100–150 kcal. Climbing faster than 0.5kg a month? Take 100–150 off.'},
+  {n:3,name:'Cut',short:'Strip the last fat',w:80,bf:12,time:'About 2–3 months',kcal:2300,
+   aim:'Finish at 80kg and 12% body fat',
+   scale:'Weekly scale average drops about 0.25–0.5kg a week.',
+   train:'Keep the weights heavy. Back to the phase 1 leg sets.',
+   food:'Remove the Nakd bar and half the bananas at lunch, about 2,300 kcal. Protein stays at 165g.',
+   fix:'Lifts dropping two weeks in a row? Add back 100–150 kcal.'},
+];
+const phaseN = () => Math.min(3, Math.max(1, D.settings.phase||1));
+const PH = () => PHASES[phaseN()-1];
+function phaseStartLog(key){
+  const st=D.settings.phaseStart||'0000';
+  const l=D.body.filter(b=>b[key]!=null);
+  return l.find(b=>b.date>=st) || l[l.length-1] || null;
+}
+function pct(start,now,target){ if(start==null||now==null||start===target) return now===target?100:0; return Math.max(0,Math.min(100,(now-start)/(target-start)*100)); }
+function phaseReady(){
+  const p=phaseN(), fs=D.body.filter(b=>b.bf), ws=D.body.filter(b=>b.w);
+  const f=fs.length?fs[fs.length-1].bf:null, w=ws.length?ws[ws.length-1].w:null;
+  if(p===1 && f!=null && f<=15) return 'You\'ve hit around 15% body fat. Check it again next week, and if it holds, you\'re ready for phase 2.';
+  if(p===2 && w!=null && w>=82) return 'You\'re at about 82kg. Ready to cut: move to phase 3.';
+  if(p===3 && f!=null && f<=12) return 'That\'s the goal: about 12% body fat. Brilliant work.';
+  return null;
+}
+function phaseCard(full){
+  const p=PH(), n=phaseN(), ws=D.body.filter(b=>b.w), fs=D.body.filter(b=>b.bf);
+  const w=ws.length?ws[ws.length-1].w:null, f=fs.length?fs[fs.length-1].bf:null;
+  const sw=(phaseStartLog('w')||{}).w, sf=(phaseStartLog('bf')||{}).bf;
+  const ready=phaseReady();
+  const dir = (now,t,u)=> now==null?'Not logged yet':(Math.abs(now-t)<0.05?'On target':(Math.abs(now-t).toFixed(1)+u+(now>t?' to lose':' to gain')));
+  let h=`<div class="card phase">
+    <div class="ph-steps">${PHASES.map(x=>`<div class="ph-step ${x.n<n?'done':x.n===n?'now':''}"><i>${x.n<n?'✓':x.n}</i><span>${x.name}</span></div>`).join('')}</div>
+    <div class="ph-goal">Long-term goal: <b>${D.settings.targetWeight} kg at ${D.settings.targetFat}%</b></div>
+    <h3 style="margin-top:12px">Phase ${n}: ${p.name}</h3>
+    <div class="sub">${esc(p.aim)} · ${esc(p.time)}</div>
+    <div class="goal-l"><span>Weight → ${p.w} kg</span><span class="num">${w!=null?w.toFixed(1)+' kg · ':''}${dir(w,p.w,' kg')}</span></div>
+    <div class="bar"><i style="width:${pct(sw,w,p.w)}%"></i></div>
+    <div class="goal-l"><span>Body fat → ${p.bf}%</span><span class="num">${f!=null?f.toFixed(1)+'% · ':''}${dir(f,p.bf,'%')}</span></div>
+    <div class="bar"><i style="width:${pct(sf,f,p.bf)}%;background:var(--good)"></i></div>
+    ${ready?`<div class="banner info" style="margin:14px 0 0">${esc(ready)}${n<3?`<div style="margin-top:8px"><button class="link" data-act="set-phase" data-n="${n+1}">Move to phase ${n+1}</button></div>`:''}</div>`:''}`;
+  if(full) h+=`<div class="ph-rules">
+      <div><b>Scale</b>${esc(p.scale)}</div>
+      <div><b>Training</b>${esc(p.train)}</div>
+      <div><b>Food</b>${esc(p.food)}</div>
+      <div><b>If it stalls</b>${esc(p.fix)}</div>
+    </div>`;
+  return h+'</div>';
+}
+function phasePicker(){
+  const n=phaseN();
+  return PHASES.map(x=>`<button class="swap-opt ${x.n===n?'on':''}" data-act="set-phase" data-n="${x.n}"><span>Phase ${x.n}: ${x.name}<em>${esc(x.short)}</em></span><span class="num">${x.w} kg · ${x.bf}%</span></button>`).join('');
 }
 
 /* ============ DIET ============ */
@@ -855,7 +1008,7 @@ function diet(){
   const tickRow=(k,label,sub)=>`<div class="cardio ${f[k]?'on':''}"><div class="rx">${esc(label)}${sub?`<div class="md">${esc(sub)}</div>`:''}</div><button class="tick" data-act="food" data-k="${k}" data-v="1">${TICK}<span>${f[k]?'Done':'Tick'}</span></button></div>`;
   $('diet').innerHTML = `
     <div class="stats">
-      <div class="stat"><div class="stat-v num">${tot.kcal.toLocaleString()}<small>/ 2,550</small></div><div class="stat-l">Calories ticked today</div><div class="stat-d">Estimates</div></div>
+      <div class="stat"><div class="stat-v num">${tot.kcal.toLocaleString()}<small>/ ${PH().kcal.toLocaleString()}</small></div><div class="stat-l">Calories ticked today</div><div class="stat-d">Estimates</div></div>
       <div class="stat"><div class="stat-v num">${tot.p}<small>/ 165g</small></div><div class="stat-l">Protein ticked today</div><div class="stat-d">Aim for 140g minimum</div></div>
     </div>
     ${dow===0 ? `<div class="card"><h3>Football fuelling</h3>${FOOTBALL_FOOD.map(x=>tickRow(x.k,x.title,x.lines[0])).join('')}</div>`:''}
@@ -872,12 +1025,63 @@ function diet(){
     <div class="card">
       <h3>Rules</h3>
       <div class="food-lines" style="margin-top:8px">
-        Check the weekly scale average: it should drop 0.25–0.5kg a week.<br>
-        Not dropping after 3 weeks? Remove the Nakd bar and half a banana at lunch.<br>
+        <b>Phase ${phaseN()}: ${esc(PH().name)}.</b> ${esc(PH().food)}<br>
+        ${esc(PH().scale)}<br>
+        ${esc(PH().fix)}<br>
         Creatine adds about 1kg of water in the first two weeks. Don't read it as fat.<br>
         Salmon max 4 breakfasts a week.
       </div>
     </div>`;
+}
+
+// ---------- WARM-UP ----------
+const WARM_CARDIO = {
+  rower:{label:'Rower',lines:['Damper 3–5','About 20–22 strokes a minute','About 2:20–2:40 per 500m','Last minute slightly harder']},
+  bike:{label:'Bike',lines:['Level 4–6','80–90 rpm','Up 1–2 levels for the last minute']},
+  tread:{label:'Treadmill',lines:['First minute: walk 3.5mph, 1% incline','Then jog 4.5–5mph at 1%','Or brisk walk 3.5mph at 5–6% incline']},
+};
+const WARM_PICK = {upperA:['rower','Warms up your back, shoulders and arms as well as your legs'],upperB:['rower','Warms up your back, shoulders and arms as well as your legs'],lowerA:['bike','Loosens knees and hips without any impact'],lowerB:['bike','Loosens knees and hips without any impact'],engine:['tread','Easy walk into your run']};
+const WARM_ANKLE = {lowerA:1,lowerB:1,engine:1};
+const r25 = x => Math.max(2.5, Math.round(x/2.5)*2.5);
+function rampText(s){
+  const p=s.items.find(i=>i.main); if(!p) return null;
+  const it=eff(p), w=+((D.draft.items[it.id]&&D.draft.items[it.id].sets[0]||{}).w)||0;
+  if(!w) return {name:it.name, steps:'3–4 light sets, building up to the weight you\'ll use. Reps go down as the weight goes up'};
+  const bar = it.bar && w>=40;
+  const steps = (bar?['Empty bar × 10']:[r25(w*0.4)+' kg × 10']).concat([r25(w*0.55)+' kg × 5', r25(w*0.7)+' kg × 3', r25(w*0.85)+' kg × 1–2']);
+  return {name:it.name, steps: steps.join(' → ')+' → then '+w+' kg working sets'};
+}
+function warmCard(sid){
+  const s=S[sid], dr=D.draft;
+  if(!WARM_PICK[sid]) return '';
+  dr.warm = dr.warm || {};
+  const pick = dr.warmPick || WARM_PICK[sid][0];
+  const ramp = rampText(s);
+  const rows = [
+    {k:'cardio',t:'Easy cardio, 3–5 min',d:'Effort 4/10: warm and breathing a bit harder, but you can still talk.',cardio:true},
+    {k:'swing',t:'Leg swings',d:'10 front-back, 10 side-side, each leg'},
+    {k:'arms',t:'Arm circles + band pull-aparts',d:'15 each'},
+    {k:'squat',t:'Bodyweight squats',d:'10'},
+  ];
+  if(WARM_ANKLE[sid]) rows.push({k:'ankle',t:'Ankle routine',d:'About 4 min',ankle:true});
+  const extras = s.items.filter(i=>i.warm).map(i=>eff(i).name);
+  if(extras.length) rows.push({k:'extra',t:extras.join(', '),d:'The first exercise below. Log it there.'});
+  if(ramp) rows.push({k:'ramp',t:'Ramp-up sets: '+ramp.name,d:ramp.steps+'. Don\'t log these.'});
+  const done = rows.filter(r=>dr.warm[r.k]).length, all = done===rows.length;
+  const open = dr.warmOpen!=null ? dr.warmOpen : !all;
+  let h = `<div class="ex wu ${all?'complete':''}">
+    <button class="wu-head" data-act="wtog"><span><span class="ex-name">Warm-up</span><span class="ex-target" style="display:block">${all?'Done ✓':'About 8–10 min · '+done+' of '+rows.length+' done'}</span></span><span class="wu-chev ${open?'open':''}">›</span></button>`;
+  if(open){
+    h += rows.map(r=>`<div class="wu-row ${dr.warm[r.k]?'on':''}">
+        <button class="wu-box" data-act="wtick" data-k="${r.k}" aria-label="Done: ${esc(r.t)}">${TICK}</button>
+        <div class="wu-txt"><div class="wu-t">${esc(r.t)}</div><div class="wu-d">${esc(r.d)}</div>
+        ${r.cardio?`<div class="wu-pick">${Object.entries(WARM_CARDIO).map(([k,c])=>`<button class="${pick===k?'on':''}" data-act="wpick" data-k="${k}">${c.label}${WARM_PICK[sid][0]===k?' ★':''}</button>`).join('')}</div>
+          <div class="wu-set">${WARM_CARDIO[pick].lines.map(esc).join('<br>')}</div>
+          <div class="wu-d" style="margin-top:4px">★ Best today: ${esc(WARM_PICK[sid][1].toLowerCase())}.</div>`:''}
+        ${r.ankle?`<button class="link" style="font-size:13px;margin-top:4px" data-act="goto-mob" data-m="ankle">Start guided ankle routine</button>`:''}
+        </div></div>`).join('');
+  }
+  return h+'</div>';
 }
 
 /* ============ STRETCH ============ */
@@ -1015,6 +1219,11 @@ document.addEventListener('click', e=>{
     renderSession();
   }
   else if(a==='addset'){ const st=D.draft.items[el.dataset.id]; const l=st.sets[st.sets.length-1]||{}; st.sets.push(ALL[el.dataset.id].type==='t'?{s:l.s??'',done:false}:{w:l.w??'',r:l.r??'',done:false}); renderSession(); }
+  else if(a==='wtog'){ const dr=D.draft; const cur = dr.warmOpen!=null ? dr.warmOpen : !document.querySelector('.wu.complete'); dr.warmOpen=!cur; renderSession(); }
+  else if(a==='wtick'){ const dr=D.draft; dr.warm=dr.warm||{}; dr.warm[el.dataset.k]=!dr.warm[el.dataset.k]; renderSession(); }
+  else if(a==='wpick'){ D.draft.warmPick=el.dataset.k; renderSession(); }
+  else if(a==='swapopen'){ SWAPOPEN = SWAPOPEN===el.dataset.id ? null : el.dataset.id; renderSession(); }
+  else if(a==='swapset'){ const pid=el.dataset.id, k=+el.dataset.k; D.draft.swap=D.draft.swap||{}; D.draft.swap[pid]=k; D.swaps=D.swaps||{}; D.swaps[pid]=k; SWAPOPEN=null; save(); renderSession(); toast(k?'Swapped. It stays swapped until you change it back':'Back to the planned exercise'); }
   else if(a==='cdone'){ const st=D.draft.items[el.dataset.id]; st.done=!st.done; renderSession(); }
   else if(a==='fb'){ D.draft.football[el.dataset.k]=!D.draft.football[el.dataset.k]; renderFootball(); }
   else if(a==='feel'){ D.draft.football.feel=+el.dataset.n; renderFootball(); }
@@ -1049,6 +1258,7 @@ document.addEventListener('click', e=>{
     if(!row && isNaN(k) && !note){ toast('Enter at least one result'); return; }
     D.tests.push({date:today(),row:row||null,ktw:isNaN(k)?null:k,note:note||null}); save(); toast('Retest saved'); pTests();
   }
+  else if(a==='set-phase'){ const n=+el.dataset.n; if(n===phaseN()) return; if(!confirm('Move to phase '+n+': '+PHASES[n-1].name+'? Your targets and calories will change.')) return; D.settings.phase=n; D.settings.phaseStart=today(); save(); toast('Phase '+n+': '+PHASES[n-1].name); if(TAB==='settings') $('s-phases').innerHTML=phasePicker(); else if(TAB==='progress') pBody(); }
   else if(a==='save-settings'){
     const tw=parseFloat($('s-tw').value), tf=parseFloat($('s-tf').value), sd=$('s-start').value;
     if(!isNaN(tw)) D.settings.targetWeight=tw; if(!isNaN(tf)) D.settings.targetFat=tf; if(sd) D.startDate=sd;
