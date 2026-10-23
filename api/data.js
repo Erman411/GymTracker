@@ -10,10 +10,18 @@ function same(a, b) {
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  const pass = process.env.SYNC_KEY;
-  if (!url || !token || !pass) return res.status(503).json({ error: 'not-configured' });
+  // Vercel may add a custom prefix to the database variables (e.g. STORAGE_KV_REST_API_URL), so match on the ending
+  const env = process.env, keys = Object.keys(env);
+  const find = (...ends) => { for (const e of ends) { const k = keys.find(k => k === e || k.endsWith('_' + e)); if (k && env[k]) return env[k]; } return null; };
+  const url = find('KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL', 'REST_API_URL');
+  const token = find('KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN', 'REST_API_TOKEN');
+  const pass = env.SYNC_KEY || env.sync_key || env.Sync_Key;
+  if (!url || !token || !pass) {
+    const missing = [];
+    if (!url || !token) missing.push('database');
+    if (!pass) missing.push('SYNC_KEY');
+    return res.status(503).json({ error: 'not-configured', missing });
+  }
   if (!same(req.headers['x-sync-key'] || '', pass)) return res.status(401).json({ error: 'wrong-code' });
 
   const redis = async (cmd) => {

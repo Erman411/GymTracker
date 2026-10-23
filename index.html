@@ -570,7 +570,7 @@ async function syncConnect(code){
   try{
     const r=await syncReq('GET',null,code);
     if(r.status===401){ toast('That sync code is wrong'); return; }
-    if(r.status===503){ toast('Cloud storage isn’t set up on Vercel yet'); return; }
+    if(r.status===503){ let m=[]; try{ m=(await r.json()).missing||[]; }catch(e){} toast(m.length===2?'Vercel is missing both the database and SYNC_KEY':m[0]==='SYNC_KEY'?'Database found, but SYNC_KEY isn’t set on Vercel':m[0]==='database'?'SYNC_KEY found, but the database isn’t connected':'Cloud storage isn’t set up on Vercel yet'); return; }
     if(!r.ok){ toast('Couldn’t reach the cloud. Try again'); return; }
   }catch(e){ toast('You look offline. Try again'); return; }
   SYNC.key=code; lsSet('gt_sync_key',code); SYNC.pulled=false; lsSet('gt_pulled',null);
