@@ -308,12 +308,13 @@ select.in{background-image:none}
       </div>
       <button class="btn btn-primary" data-act="save-settings">Save settings</button>
       <div class="sec">Your data</div>
+      <div class="card" id="sync-card"></div>
       <div class="card">
         <div class="list-row"><div>Back up everything<div class="m">Downloads a file you can keep or move to another device</div></div><button class="link" data-act="export">Export</button></div>
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Everything is saved in this browser on this device. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -513,7 +514,82 @@ const exName = id => (ALL[id]&&ALL[id].name) || LEGACY[id] || id;
 const KEY='gymtracker2025';
 const fresh = () => ({v:3,history:[],pbs:{},body:[],tests:[],settings:{targetWeight:80,targetFat:12,phase:1,phaseStart:null},startDate:null,draft:null,food:{},stretchLog:{},swaps:{}});
 let D = fresh();
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){ toast('Couldn’t save: storage is unavailable'); } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){ toast('Couldn’t save: storage is unavailable'); } syncMark(); }
+
+/* ============ CLOUD SYNC ============ */
+const lsGet=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsSet=(k,v)=>{ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch(e){} };
+const SYNC={ key:lsGet('gt_sync_key'), updated:+lsGet('gt_updated')||0, pulled:lsGet('gt_pulled')==='1', sent:null, t:null, busy:false, state:'', last:+lsGet('gt_last_sync')||0, lastPull:0 };
+function syncReq(method, body, key){
+  return fetch('/api/data',{method, headers:{'Content-Type':'application/json','x-sync-key':key||SYNC.key}, body: body?JSON.stringify(body):undefined, cache:'no-store'});
+}
+function syncState(st){ SYNC.state=st; if(st==='synced'){ SYNC.last=Date.now(); lsSet('gt_last_sync',SYNC.last); } if(TAB==='settings') syncCard(); }
+function syncMark(){
+  if(!SYNC.key || !SYNC.pulled) return;
+  const json=JSON.stringify(D); if(json===SYNC.sent) return;
+  SYNC.updated=Date.now(); lsSet('gt_updated',SYNC.updated);
+  clearTimeout(SYNC.t); SYNC.t=setTimeout(syncPush,1500);
+}
+async function syncPush(){
+  if(!SYNC.key) return;
+  if(SYNC.busy){ clearTimeout(SYNC.t); SYNC.t=setTimeout(syncPush,1000); return; }
+  SYNC.busy=true; const json=JSON.stringify(D);
+  try{
+    const r=await syncReq('PUT',{updatedAt:SYNC.updated||Date.now(),data:D});
+    if(r.status===409){ syncApply(await r.json()); }
+    else if(r.ok){ SYNC.sent=json; syncState('synced'); }
+    else syncState(r.status===401?'wrong':r.status===503?'nocloud':'error');
+  }catch(e){ syncState('offline'); }
+  SYNC.busy=false;
+}
+function syncApply(remote){
+  lsSet('gymtracker2025_before_sync', JSON.stringify(D));
+  const keepDraft = D.draft && !remote.data.draft ? D.draft : null;
+  D=migrate(remote.data); if(keepDraft) D.draft=keepDraft;
+  try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){}
+  SYNC.updated=remote.updatedAt; lsSet('gt_updated',SYNC.updated);
+  SYNC.sent=JSON.stringify(D); syncState('synced');
+  if(TAB!=='session' && TAB!=='routine') tab(TAB);
+}
+async function syncPull(){
+  if(!SYNC.key || SYNC.busy) return;
+  SYNC.busy=true; SYNC.lastPull=Date.now();
+  try{
+    const r=await syncReq('GET');
+    if(!r.ok){ syncState(r.status===401?'wrong':r.status===503?'nocloud':'error'); SYNC.busy=false; return; }
+    const remote=await r.json();
+    const first=!SYNC.pulled; SYNC.pulled=true; lsSet('gt_pulled','1'); SYNC.busy=false;
+    if(!remote){ if(!SYNC.updated){ SYNC.updated=Date.now(); lsSet('gt_updated',SYNC.updated); } await syncPush(); if(first) toast('This device’s data is now saved in the cloud'); return; }
+    if(remote.updatedAt > SYNC.updated){ syncApply(remote); if(first) toast('Loaded your data from the cloud'); }
+    else if(remote.updatedAt < SYNC.updated){ await syncPush(); }
+    else { SYNC.sent=JSON.stringify(D); syncState('synced'); }
+  }catch(e){ SYNC.busy=false; syncState('offline'); }
+}
+async function syncConnect(code){
+  code=(code||'').trim(); if(!code){ toast('Enter your sync code'); return; }
+  try{
+    const r=await syncReq('GET',null,code);
+    if(r.status===401){ toast('That sync code is wrong'); return; }
+    if(r.status===503){ toast('Cloud storage isn’t set up on Vercel yet'); return; }
+    if(!r.ok){ toast('Couldn’t reach the cloud. Try again'); return; }
+  }catch(e){ toast('You look offline. Try again'); return; }
+  SYNC.key=code; lsSet('gt_sync_key',code); SYNC.pulled=false; lsSet('gt_pulled',null);
+  await syncPull();
+}
+function syncCard(){
+  const c=$('sync-card'); if(!c) return;
+  if(!SYNC.key){
+    c.innerHTML=`<h3>Sync across devices</h3><div class="sub">Keep the same data on your phone, laptop and any other device. Enter your sync code once on each one.</div>
+      <label class="field" style="margin-top:12px"><span>Sync code</span><input class="in" id="sync-code" type="password" autocomplete="current-password" placeholder="Your sync code"></label>
+      <button class="btn btn-primary" style="margin-top:12px" data-act="sync-connect">Connect</button>`;
+    return;
+  }
+  const ago = SYNC.last ? (()=>{ const m=Math.round((Date.now()-SYNC.last)/60000); return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' h ago'; })() : 'not yet';
+  const msg = {synced:'Synced '+ago, offline:'Offline. Changes are saved on this device and will sync when you’re back online', wrong:'The sync code was rejected. Disconnect and enter it again', nocloud:'Cloud storage isn’t set up on Vercel', error:'Sync hit a problem. Try Sync now'}[SYNC.state] || ('Last synced '+ago);
+  const bad = ['offline','wrong','nocloud','error'].includes(SYNC.state);
+  c.innerHTML=`<h3>Sync across devices</h3><div class="sub" style="${bad?'color:var(--warn)':''}">${esc(msg)}</div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn btn-quiet" data-act="sync-now">Sync now</button><button class="btn btn-quiet" data-act="sync-off">Disconnect</button></div>`;
+}
 function migrate(o){
   if(o && o.v===3) return Object.assign(fresh(), o);
   const n = fresh(); if(!o) return n;
@@ -584,7 +660,7 @@ function tab(t){
   if(t==='diet'){ header('Diet','Phase '+phaseN()+': about '+PH().kcal.toLocaleString()+' kcal and 165g protein a day'); diet(); }
   if(t==='progress'){ header('Progress'); progress(PSEG); }
   if(t==='mobility'){ header('Stretch','Guided routines with a timer'); mobility(); }
-  if(t==='settings'){ header('Settings'); $('s-phases').innerHTML=phasePicker(); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
+  if(t==='settings'){ header('Settings'); syncCard(); $('s-phases').innerHTML=phasePicker(); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
 }
 
 /* ============ HOME ============ */
@@ -1294,11 +1370,14 @@ document.addEventListener('click', e=>{
     if(!isNaN(tw)) D.settings.targetWeight=tw; if(!isNaN(tf)) D.settings.targetFat=tf; if(sd) D.startDate=sd;
     save(); toast('Settings saved');
   }
+  else if(a==='sync-connect'){ syncConnect($('sync-code').value); }
+  else if(a==='sync-now'){ SYNC.pulled ? (async()=>{ await syncPull(); if(SYNC.state==='synced') toast('Synced'); })() : syncPull(); }
+  else if(a==='sync-off'){ if(confirm('Stop syncing this device? Your data stays on this device and in the cloud.')){ SYNC.key=null; lsSet('gt_sync_key',null); lsSet('gt_pulled',null); SYNC.pulled=false; SYNC.state=''; syncCard(); } }
   else if(a==='export'){
     const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'}); const u=URL.createObjectURL(blob);
     const l=document.createElement('a'); l.href=u; l.download='training-backup-'+today()+'.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),1000);
   }
-  else if(a==='clear'){ if(confirm('Delete all your data on this device? This can’t be undone.')){ D=fresh(); save(); toast('All data deleted'); tab('home'); } }
+  else if(a==='clear'){ if(confirm('Delete all your data on this device? This can’t be undone.'+(SYNC.key?' This device will also stop syncing, so the cloud copy is kept.':''))){ if(SYNC.key){ SYNC.key=null; lsSet('gt_sync_key',null); lsSet('gt_pulled',null); SYNC.pulled=false; } D=fresh(); save(); toast('All data deleted'); tab('home'); } }
 });
 document.addEventListener('change', e=>{ if(e.target.dataset.in==='lift'){ LIFT=e.target.value; pLifts(); } });
 document.addEventListener('input', e=>{
@@ -1316,10 +1395,12 @@ $('import').addEventListener('change', e=>{
   r.onload=()=>{ try{ const o=JSON.parse(r.result); if(!confirm('Replace the data on this device with this backup?')) return; D=migrate(o); save(); toast('Backup restored'); tab('home'); }catch(err){ toast('That file isn’t a valid backup'); } e.target.value=''; };
   r.readAsText(f);
 });
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden && $('rest').classList.contains('show')) tickRest(); });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden && $('rest').classList.contains('show')) tickRest(); if(!document.hidden && Date.now()-SYNC.lastPull>15000) syncPull(); });
+window.addEventListener('online',()=>syncPull());
 
 rescueDraft();
 tab('home');
+syncPull();
 </script>
 </body>
 </html>
