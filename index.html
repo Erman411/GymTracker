@@ -241,6 +241,50 @@ select.in{background-image:none}
   .day-chip{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--ink);font:inherit;cursor:pointer}
   .day-chip b{font-size:12px;font-weight:600}.day-chip small{font-size:11px;color:var(--muted)}
   .day-chip.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}.day-chip.on small{color:var(--accent-ink)}
+
+/* ===== Desktop / laptop browsers ===== */
+@media (hover:hover){
+  .btn:hover{filter:brightness(.97)}
+  .btn-primary:hover{filter:brightness(1.08)}
+  .nav-btn:hover{color:var(--ink)}
+  .link:hover{text-decoration:underline}
+}
+@media (min-width:1000px){
+  #app{padding-left:232px}
+  nav{top:0;bottom:0;right:auto;width:232px;border-top:none;border-right:1px solid var(--line);padding:28px 14px;background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+  .nav-in{max-width:none;flex-direction:column;gap:4px}
+  .nav-in::before{content:"Training";display:block;font-size:22px;font-weight:700;letter-spacing:-.4px;padding:0 12px 18px}
+  .nav-btn{flex:none;flex-direction:row;gap:12px;padding:10px 12px;border-radius:10px;font-size:15px;color:var(--muted)}
+  .nav-btn svg{width:22px;height:22px}
+  .nav-btn.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  header{padding:28px 40px 14px}
+  main{padding:4px 40px 48px}
+  .h-row,.wrap{max-width:1080px}
+  .h-title{font-size:32px}
+  #rest{left:calc(50% + 116px);bottom:24px;width:min(528px,calc(100% - 300px))}
+
+  /* Today: plan on the left, week + numbers on the right */
+  #v-home.on{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-areas:"today week" "today stats" "today weigh" "pbs weigh";gap:0 18px;align-items:start}
+  #today{grid-area:today} #home-week{grid-area:week} #stats{grid-area:stats} #home-weigh{grid-area:weigh} #pb-card{grid-area:pbs}
+
+  /* Session: exercises two across, everything else full width */
+  #session{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;align-items:start}
+  #session>*{grid-column:1/-1}
+  #session>.ex{grid-column:auto}
+  #session>.ex.wu{grid-column:1/-1}
+  #session>.btn,#session>.field{max-width:520px}
+
+  /* Readable widths for text-heavy pages */
+  #v-settings.on,#v-routine.on{max-width:760px}
+  /* Stretch and Diet: cards two across */
+  #mobility,#diet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;align-items:start}
+  #mobility>*,#diet>*{grid-column:1/-1}
+  #mobility>.card:not(.today),#diet>.card,#diet>.ex{grid-column:auto}
+  #v-settings.on{display:grid;grid-template-columns:1fr;gap:0}
+}
+@media (min-width:1400px){
+  .h-row,.wrap{max-width:1180px}
+}
 </style>
 </head>
 <body>
@@ -251,9 +295,9 @@ select.in{background-image:none}
     <!-- HOME -->
     <section class="view on" id="v-home">
       <div id="today"></div>
-      <div class="card"><div class="week" id="week"></div></div>
+      <div class="card" id="home-week"><div class="week" id="week"></div></div>
       <div class="stats" id="stats"></div>
-      <div class="card">
+      <div class="card" id="home-weigh">
         <h3>Morning weigh-in</h3>
         <div class="sub">Same time, same conditions. The weekly average is what counts.</div>
         <div class="row" style="margin-top:12px">
