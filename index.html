@@ -340,6 +340,7 @@ select.in{background-image:none}
         <div class="sub">Move on when you hit each phase's target. The Diet tab and Progress targets follow whichever phase you pick.</div>
         <div class="swap-list" id="s-phases" style="margin-top:12px"></div>
       </div>
+      <div class="card" id="s-rehab"></div>
       <div class="card">
         <h3>Long-term goal</h3>
         <div class="row" style="margin-top:12px">
@@ -360,7 +361,7 @@ select.in{background-image:none}
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Version 23 Oct 2026 (desktop layout). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Version 1 Nov 2026 (rehab mode). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -445,8 +446,55 @@ const S = {
     {id:'sat_flow',name:'Recovery mobility flow',type:'c',rx:'About 15 min, in the Stretch tab',link:'flow'},
   ]},
   football:{name:'Football',focus:'11-a-side, 90 min',color:'#1B7F3B',football:true,items:[]},
+  // ---- hamstring rehab mode (Settings) ----
+  rehab1:{name:'Hamstring rehab',focus:'Phase 1: protect',color:'#C2410C',stretch:'rsafe',rehab:true,items:[
+    {id:'r_iso1',name:'Heel-press isometric',type:'t',sets:5,reps:'10 sec at about 30% effort',rt:10,rest:30,note:'Lie on your back, knee bent. Press your heel down into the floor and hold. Pain must stay at 3/10 or below. Repeat this 2–3 times a day.'},
+    {id:'r_walk1',name:'Easy walk',type:'c',rx:'10–20 min, short steps, only if pain stays at 3/10 or below'},
+    {id:'r_ice',name:'Ice',type:'c',rx:'10–15 min, 2–3 times a day for the first 3 days. No heat, massage or stretching.'},
+    {id:'abcrunch',name:'Ab crunch machine',type:'w',sets:3,reps:'10–15',rt:15,rest:60,from:'abwheel',note:'Curl your ribs towards your hips, don\'t pull with your arms, 2 seconds back up.'},
+    {id:'pallof',name:'Pallof press',type:'w',sets:3,reps:'10 each side',rt:10,rest:45},
+  ]},
+  rehab2:{name:'Hamstring rehab',focus:'Phase 2: rebuild',color:'#C2410C',stretch:'rsafe',rehab:true,items:[
+    {id:'r_bike',name:'Easy bike',type:'c',rx:'15–20 min, level 3–5, 80–90 rpm, pain-free'},
+    {id:'r_bridge2',name:'Glute bridge (both legs)',type:'bw',sets:3,reps:'12',rt:12,rest:45,note:'Squeeze your glutes at the top for 2 seconds.'},
+    {id:'r_bridge1',name:'Single-leg glute bridge',type:'bw',sets:3,reps:'8 each leg',rt:8,rest:45,note:'Start on the good leg. Match reps on both sides before phase 3.'},
+    {id:'r_iso2',name:'Heel-press isometric (harder)',type:'t',sets:4,reps:'20 sec at 50–70% effort',rt:20,rest:45,note:'Straighten the knee a little more each session as it allows.'},
+    {id:'r_curl',name:'Leg curl (rehab)',type:'w',sets:3,reps:'12',rt:12,rest:60,note:'Very light to start. Pain 3/10 or below, and no worse the next morning.'},
+    {id:'abcrunch',name:'Ab crunch machine',type:'w',sets:3,reps:'10–15',rt:15,rest:60,from:'abwheel',note:'Curl your ribs towards your hips, don\'t pull with your arms, 2 seconds back up.'},
+    {id:'sideplank',name:'Side plank',type:'t',sets:3,reps:'30–45 sec each side',rt:45,rest:45},
+  ]},
+  rehab3:{name:'Hamstring rehab',focus:'Phase 3: return',color:'#C2410C',stretch:'rsafe',rehab:true,items:[
+    {id:'r_bike3',name:'Bike warm-up',type:'c',rx:'10 min, building to moderate'},
+    {id:'r_curl',name:'Leg curl (rehab)',type:'w',sets:3,reps:'10',rt:10,rest:60,note:'Build back towards your normal leg curl weight over 2 weeks.'},
+    {id:'r_eccurl',name:'Slow single-leg lowering curl',type:'w',sets:3,reps:'5 each leg',rt:5,rest:90,note:'Lift with both legs, lower with one over 4–5 seconds.'},
+    {id:'r_rdl',name:'Romanian deadlift (rehab)',type:'w',sets:3,reps:'8',rt:8,rest:90,note:'Start at about 50% of your old RDL. Add 5–10kg a session if pain-free.'},
+    {id:'r_squat',name:'Back squat (rehab)',type:'w',bar:true,sets:3,reps:'5',rt:5,rest:120,note:'Start at about 50% of your old squat and build back over 2–3 weeks.'},
+    {id:'r_run',name:'Jog and strides',type:'c',rx:'Jog 5–10 min, then 4–6 strides of 60m: 60% effort first session, then 80%, then 90%.'},
+    {id:'r_nordic',name:'Nordic (partial range)',type:'bw',sets:2,reps:'3',rt:3,rest:120,note:'Lower only as far as you can control, then catch yourself. Last thing to come back.'},
+  ]},
+  restwalk:{name:'Rest day',focus:'Walk + recover',color:'#7B8794',stretch:null,items:[
+    {id:'sun_walk',name:'Walk',type:'c',rx:'30–45 min easy walk, if pain-free'},
+  ]},
 };
 const SCHEDULE = {1:'upperA',2:'lowerA',3:'upperB',4:'lowerB',5:'engine',6:'recovery',0:'football'};
+const REHAB_DAYS = {2:1,4:1,5:1,6:1};
+const rehabOn = () => !!(D && D.settings && D.settings.rehab && D.settings.rehab.on);
+const rehabPhase = () => Math.min(3, Math.max(1, (D.settings.rehab||{}).phase||1));
+function planFor(dow){
+  if(rehabOn()){ if(REHAB_DAYS[dow]) return 'rehab'+rehabPhase(); if(dow===0) return 'restwalk'; }
+  return SCHEDULE[dow];
+}
+// items for a session, adjusted for rehab mode
+function itemsOf(sid){
+  const s=S[sid]; if(!rehabOn()) return s.items;
+  return s.items.filter(i=> i.id!=='wed_int' && !(i.id==='mon_cardio' && rehabPhase()===1));
+}
+const RETURN_CHECKS = [
+  ['sprint','Flat-out sprint is pain-free'],
+  ['slr','Straight-leg raise is the same on both sides'],
+  ['bridge','Single-leg bridge reps match on both sides'],
+  ['nextday','No pain the day after a hard session'],
+];
 const DAYNAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 // ---------- STRETCH LIBRARY ----------
@@ -499,6 +547,7 @@ const ROUTINES = {
   fpre:{title:'Football warm-up',when:'On the pitch before kick-off. Moving, no holds',g:'football',steps:[{s:'jog',t:180},{s:'highknees',r:'20m'},{s:'heelflicks',r:'20m'},{s:'shuffle',r:'20m each way'},{s:'carioca',r:'20m each way'},{s:'hipopen',r:'10 each leg'},{s:'hipclose',r:'10 each leg'},{s:'lungetwist',r:'10 each leg'},{s:'legswingpost',r:'10 front-back, 10 side-side, each leg'},{s:'latlunge',r:'8 each side'},{s:'buildup',r:'3 × 30m'},{s:'shuttles',r:'4 short shuttles'}]},
   flow:{title:'Saturday recovery flow',when:'Saturday, after the bike',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'hips9090',r:'10 each side'},{s:'couch',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'deepsquat',t:90},{s:'lathang',t:30}]},
   ankle:{title:'Ankle routine',when:'In the warm-up on Tue, Thu and Fri',g:'warm',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'}]},
+  rsafe:{title:'Hamstring-safe mobility',when:'Rehab mode: no hamstring stretching until phase 3',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'couch',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'childs',t:45}]},
   gwarm:{title:'Gym warm-up',when:'Before every session. Moving, no holds',g:'warm',steps:[{s:'easycardio',t:180},{s:'legswing',r:'10 each way, each leg'},{s:'armcircle',r:'15 each'},{s:'bwsquat',r:'10'},{s:'rampup',r:'Build to working weight'}]},
 };
 const RGROUPS = [['after','After training'],['football','Football'],['recovery','Recovery'],['warm','Warm-ups (before training)']];
@@ -672,7 +721,8 @@ function block(){
   return {week: w%6+1, block: Math.floor(w/6)+1, deload: w%6===5};
 }
 const rx = it => { const b=block(); return RX[it.rx] ? RX[it.rx](b.week,b.block) : it.rx; };
-function spec(it){ const b=block(); if(it.wk) return WK[it.wk](b.week); return {sets:b.deload?2:it.sets, reps:it.reps, rt:it.rt}; }
+const isRehabItem = it => /^r_/.test(it.id||'');
+function spec(it){ const b=block(); if(it.wk) return WK[it.wk](b.week); if(isRehabItem(it)) return {sets:it.sets, reps:it.reps, rt:it.rt}; return {sets:b.deload?2:(it.sets + (rehabOn() && it.main ? 1 : 0)), reps:it.reps, rt:it.rt}; }
 
 /* ============ HELPERS ============ */
 const $=id=>document.getElementById(id);
@@ -706,17 +756,17 @@ function tab(t){
   if(t==='diet'){ header('Diet','Phase '+phaseN()+': about '+PH().kcal.toLocaleString()+' kcal and 165g protein a day'); diet(); }
   if(t==='progress'){ header('Progress'); progress(PSEG); }
   if(t==='mobility'){ header('Stretch','Guided routines with a timer'); mobility(); }
-  if(t==='settings'){ header('Settings'); syncCard(); $('s-phases').innerHTML=phasePicker(); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
+  if(t==='settings'){ header('Settings'); syncCard(); rehabCard(); $('s-phases').innerHTML=phasePicker(); $('s-tw').value=D.settings.targetWeight; $('s-tf').value=D.settings.targetFat; $('s-start').value=D.startDate||(D.history.find(h=>!h.old)||{}).date||today(); }
 }
 
 /* ============ HOME ============ */
 const entriesOn = d => D.history.filter(h=>h.date===d);
 function home(){
-  const dow=new Date().getDay(), sid=SCHEDULE[dow], s=S[sid], t=today(), b=block();
+  const dow=new Date().getDay(), sid=planFor(dow), s=S[sid], t=today(), b=block();
   const done = entriesOn(t).some(h=>h.sessionId===sid);
   const draft = D.draft && D.draft.date===t;
   const preview = s.football ? 'Warm up on the pitch, play, cool down after.' :
-    s.items.map(i0=>{const i=i0.type==='c'?i0:eff(i0);const p=i.type==='c'?null:spec(i);return esc(i.name)+(i.type==='c'?': '+esc(rx(i)):' '+p.sets+' × '+esc(p.reps));}).join('<br>');
+    itemsOf(sid).map(i0=>{const i=i0.type==='c'?i0:eff(i0);const p=i.type==='c'?null:spec(i);return esc(i.name)+(i.type==='c'?': '+esc(rx(i)):' '+p.sets+' × '+esc(p.reps));}).join('<br>');
   let btns = done
     ? `<button class="btn btn-done" data-act="open" data-s="${sid}">Done ✓ · view or add</button>`
     : draft ? `<button class="btn btn-primary" data-act="open" data-s="${D.draft.sessionId}">Continue ${esc(S[D.draft.sessionId].name)}</button>`
@@ -726,7 +776,8 @@ function home(){
       <div class="today-day">Today's plan</div>
       <div class="today-name">${esc(s.name)}</div>
       <div class="today-focus">${esc(s.focus)}</div>
-      ${b.deload && !s.football ? '<div class="banner warn" style="margin:12px 0 0">Deload week: about 60% of your weights, 2 sets each. Do the retests this week.</div>':''}
+      ${rehabOn()?`<div class="banner warn" style="margin:12px 0 0">Hamstring rehab mode, phase ${rehabPhase()}. Keep pain at 3/10 or below. <button class="link" data-act="tab" data-t="settings">Change in Settings</button></div>`:''}
+      ${b.deload && !s.football && !s.rehab && sid!=='restwalk' ? '<div class="banner warn" style="margin:12px 0 0">Deload week: about 60% of your weights, 2 sets each. Do the retests this week.</div>':''}
       <div class="today-list">${preview}</div>
       <div style="margin-top:12px">${btns}</div>
       <div style="margin-top:12px"><button class="link" data-act="pick">Do a different session</button></div>
@@ -739,7 +790,7 @@ function home(){
   for(let i=0;i<7;i++){
     const d=new Date(mon); d.setDate(mon.getDate()+i); const key=ds(d);
     const e=entriesOn(key).filter(h=>h.sessionId!=='rest');
-    const planned=S[SCHEDULE[d.getDay()]];
+    const planned=S[planFor(d.getDay())];
     const c = e.length ? (S[e[0].sessionId]||planned).color : planned.color;
     gym += e.filter(h=>h.sessionId!=='football' && h.sessionId!=='rest').length;
     wk += `<div class="wd"><b>${'MTWTFSS'[i]}</b><i class="${e.length?'done':''}${key===t?' now':''}" style="--c:${c}">${e.length?'✓':''}</i></div>`;
@@ -775,9 +826,9 @@ function picker(keep){
   let days='';
   for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const k=ds(d); const has=entriesOn(k).some(h=>h.sessionId!=='rest');
     days+=`<button class="day-chip${k===PICKDATE?' on':''}" data-act="pickday" data-d="${k}"><b>${i===0?'Today':fmt(k,{weekday:'short'})}</b><small>${fmt(k,{day:'numeric'})}${has?' ✓':''}</small></button>`; }
-  const plan = SCHEDULE[parse(PICKDATE).getDay()];
+  const plan = planFor(parse(PICKDATE).getDay());
   p.innerHTML = `<div class="sub" style="margin:2px 0 6px">Which day? Pick an earlier day to log a session you forgot to save.</div><div class="day-chips">${days}</div>`
-    + Object.entries(S).map(([id,s])=>{ const logged=entriesOn(PICKDATE).some(h=>h.sessionId===id);
+    + Object.entries(S).filter(([id])=> !(/^rehab/.test(id)||id==='restwalk') || (rehabOn() && (id==='rehab'+rehabPhase()||id==='restwalk'))).map(([id,s])=>{ const logged=entriesOn(PICKDATE).some(h=>h.sessionId===id);
       return `<button class="btn btn-quiet" style="margin-top:6px;text-align:left;display:flex;justify-content:space-between" data-act="open" data-s="${id}" data-d="${PICKDATE}"><span>${esc(s.name)}${id===plan?' <span style="color:var(--accent);font-size:12px">planned</span>':''}</span><span style="color:var(--muted);font-weight:500">${logged?'Logged ✓':esc(s.focus)}</span></button>`; }).join('');
 }
 // a session left unsaved on an earlier day gets saved instead of being thrown away
@@ -827,7 +878,7 @@ function prefill(it,i){
   if(it.type==='t') return {s: it.wk ? sp.rt : (ls.s??''), hint:''};
   let w=ls.w, hint='';
   const hitAll = sp.rt && last.sets.length>=sp.sets && last.sets.every(x=>x.r>=sp.rt);
-  if(b.deload && w>0 && !it.wk){ w=round25(w*0.6); hint='Deload: about 60% of last time'; }
+  if(b.deload && w>0 && !it.wk && !isRehabItem(it)){ w=round25(w*0.6); hint='Deload: about 60% of last time'; }
   else if(it.inc && hitAll){ w=w+it.inc; hint='You hit every rep last time: +'+it.inc+' kg'; }
   else if(!it.inc && !it.wk && hitAll){ hint='You hit the top of the range last time: try a little more weight'; }
   return {w, r: it.wk ? sp.rt : (sp.rt || ls.r || ''), hint};
@@ -836,13 +887,13 @@ function renderSession(){
   const s=S[CUR], b=block(), dr=D.draft;
   if(s.football){ renderFootball(); return; }
   let h='';
-  if(b.deload) h+='<div class="banner warn">Deload week: about 60% of your weights, 2 sets per exercise. Weights below are already reduced.</div>';
+  if(b.deload && !s.rehab) h+='<div class="banner warn">Deload week: about 60% of your weights, 2 sets per exercise. Weights below are already reduced.</div>';
   if(dr.date!==today()) h+=`<div class="banner warn">Logging for ${esc(fmt(dr.date,{weekday:'long',day:'numeric',month:'long'}))}, not today. Fill in what you did and save at the bottom.</div>`;
   if(dr.editTs) h+=`<div class="banner info">You already logged this ${dr.date===today()?'today':'on that day'}. Changes here update that entry.</div>`;
   if(s.pre && !dr.editTs) h+='<div class="banner info">Before you start: 20–25g fast carbs 20 min before (banana, dates, or rice cake with honey).</div>';
   const WU_AT = h.length;
   h+='<p class="hint" style="margin:0 4px 12px">Main lifts: stop with 1–3 reps left. Everything else: last set should leave 0–1 reps. A set only counts if it\'s hard.</p>';
-  s.items.forEach(p=>{
+  itemsOf(CUR).forEach(p=>{
     const it = p.type==='c' ? p : eff(p);
     const st = dr.items[it.id] || (dr.items[it.id] = it.type==='c'?{done:false}:{sets:[]});
     if(it.type==='c'){
@@ -881,7 +932,7 @@ function renderSession(){
     </div>`;
   });
   { const wc = warmCard(CUR); h = h.slice(0,WU_AT) + wc + h.slice(WU_AT); }
-  if(s.stretch) h+=`<button class="then" data-act="goto-mob" data-m="${s.stretch}"><span><small>Then finish with</small><strong>${s.stretch==='upper'?'Upper':'Lower'} body stretch</strong></span><span style="color:var(--faint);font-size:20px">›</span></button>`;
+  if(s.stretch) h+=`<button class="then" data-act="goto-mob" data-m="${s.stretch}"><span><small>Then finish with</small><strong>${esc(ROUTINES[s.stretch].title)}</strong></span><span style="color:var(--faint);font-size:20px">›</span></button>`;
   h+=`<label class="field"><span>Notes (optional)</span><textarea class="in" data-in="note" placeholder="How did it feel? Anything to remember next time?">${esc(dr.note)}</textarea></label>
       <button class="btn btn-primary" style="margin-top:14px" data-act="finish">${dr.editTs?'Update session':dr.date!==today()?'Save for '+esc(fmt(dr.date,{weekday:'long'})):'Finish session'}</button>
       <div style="text-align:center;margin-top:14px"><button class="link red" data-act="discard">${dr.editTs?'Cancel changes':'Discard session'}</button></div>`;
@@ -1107,6 +1158,27 @@ function phasePicker(){
   return PHASES.map(x=>`<button class="swap-opt ${x.n===n?'on':''}" data-act="set-phase" data-n="${x.n}"><span>Phase ${x.n}: ${x.name}<em>${esc(x.short)}</em></span><span class="num">${x.w} kg · ${x.bf}%</span></button>`).join('');
 }
 
+const REHAB_PHASES = [
+  {n:1,name:'Protect',when:'Limping or sore to walk',what:'Isometrics, walking, ice, upper body. No bike.'},
+  {n:2,name:'Rebuild',when:'Walking without a limp',what:'Bike, bridges, light leg curls.'},
+  {n:3,name:'Return',when:'Pain-free in daily life',what:'RDLs, squats and running build back.'},
+];
+function rehabCard(){
+  const c=$('s-rehab'); if(!c) return;
+  const r=D.settings.rehab||{}, on=!!r.on, ph=rehabPhase(), ck=r.checks||{};
+  const passed=RETURN_CHECKS.filter(([k])=>ck[k]).length;
+  let h=`<div class="ex-h"><div><h3>Hamstring rehab mode</h3><div class="sub">${on?'On since '+esc(fmt(r.start||today(),{day:'numeric',month:'short'}))+'. Leg days, Friday and Saturday become rehab sessions; Sunday is a rest day; no sprints; 1 extra set on main upper-body lifts.':'Off. Turn it on to swap leg days, running and football for a step-by-step rehab plan. Your normal programme comes back when you turn it off.'}</div></div></div>
+    <button class="btn ${on?'btn-quiet':'btn-primary'}" style="margin-top:12px" data-act="rehab-toggle">${on?'Turn off: back to the normal plan':'Turn on rehab mode'}</button>`;
+  if(on){
+    h+=`<div class="sec" style="margin:16px 0 6px">Phase</div><div class="swap-list">${REHAB_PHASES.map(x=>`<button class="swap-opt ${x.n===ph?'on':''}" data-act="rehab-phase" data-n="${x.n}"><span>${x.n}. ${x.name}<em>${esc(x.what)}</em></span><span>${esc(x.when)}</span></button>`).join('')}</div>
+      <p class="hint" style="margin:6px 2px 0">Rule for every phase: pain 3/10 or below during exercise, and back to normal by the next morning. If not, drop back a phase.</p>
+      <div class="sec" style="margin:16px 0 6px">Back to football when all 4 are ticked (${passed}/4)</div>
+      ${RETURN_CHECKS.map(([k,l])=>`<div class="cardio ${ck[k]?'on':''}"><div class="rx">${esc(l)}</div><button class="tick" data-act="rehab-check" data-k="${k}">${TICK}<span>${ck[k]?'Yes':'Not yet'}</span></button></div>`).join('')}
+      ${passed===4?'<div class="banner info" style="margin-top:10px">All four passed. You can turn rehab mode off and go back to the normal plan, starting legs at about 70% of your old weights.</div>':''}`;
+  }
+  c.innerHTML=h;
+}
+
 /* ============ DIET ============ */
 // estimated values; the weekly scale average is the real check
 const MEALS = [
@@ -1254,7 +1326,7 @@ const rCount = rid => ROUTINES[rid].steps.length;
 const doneToday = rid => ((D.stretchLog||{})[today()]||[]).includes(rid);
 let SSEG='routines', ROPEN=null;
 function mobility(){
-  const tr=TODAY_ROUTINE[new Date().getDay()], R=ROUTINES[tr];
+  const dw=new Date().getDay(), tr=(rehabOn() && (REHAB_DAYS[dw]||dw===0)) ? 'rsafe' : TODAY_ROUTINE[dw], R=ROUTINES[tr];
   let h=`<div class="seg"><button data-act="sseg" data-p="routines" class="${SSEG==='routines'?'on':''}">Routines</button><button data-act="sseg" data-p="library" class="${SSEG==='library'?'on':''}">All stretches</button></div>`;
   if(SSEG==='routines'){
     h+=`<div class="card today" style="--c:var(--good)"><div class="today-day">Today's stretch</div><div class="today-name" style="font-size:24px">${esc(R.title)}</div><div class="today-focus">About ${rMins(tr)} min · ${rCount(tr)} ${ROUTINES[tr].g==='football'||ROUTINES[tr].g==='warm'?'moves':'stretches'}</div>
@@ -1410,6 +1482,14 @@ document.addEventListener('click', e=>{
     if(!row && isNaN(k) && !note){ toast('Enter at least one result'); return; }
     D.tests.push({date:today(),row:row||null,ktw:isNaN(k)?null:k,note:note||null}); save(); toast('Retest saved'); pTests();
   }
+  else if(a==='rehab-toggle'){
+    const r=D.settings.rehab=D.settings.rehab||{};
+    if(r.on){ if(!confirm('Turn off rehab mode and go back to the normal plan?')) return; r.on=false; save(); toast('Back to your normal plan'); }
+    else { r.on=true; r.phase=r.phase||1; r.start=today(); r.checks={}; save(); toast('Rehab mode on: phase '+rehabPhase()); }
+    rehabCard();
+  }
+  else if(a==='rehab-phase'){ D.settings.rehab.phase=+el.dataset.n; save(); rehabCard(); toast('Rehab phase '+el.dataset.n+': '+REHAB_PHASES[+el.dataset.n-1].name); }
+  else if(a==='rehab-check'){ const r=D.settings.rehab; r.checks=r.checks||{}; r.checks[el.dataset.k]=!r.checks[el.dataset.k]; save(); rehabCard(); }
   else if(a==='set-phase'){ const n=+el.dataset.n; if(n===phaseN()) return; if(!confirm('Move to phase '+n+': '+PHASES[n-1].name+'? Your targets and calories will change.')) return; D.settings.phase=n; D.settings.phaseStart=today(); save(); toast('Phase '+n+': '+PHASES[n-1].name); if(TAB==='settings') $('s-phases').innerHTML=phasePicker(); else if(TAB==='progress') pBody(); }
   else if(a==='save-settings'){
     const tw=parseFloat($('s-tw').value), tf=parseFloat($('s-tf').value), sd=$('s-start').value;
