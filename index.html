@@ -361,7 +361,7 @@ select.in{background-image:none}
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Version 1 Nov 2026 (rehab mode). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Version 9 Nov 2026 (post-deload weights fix). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -715,9 +715,9 @@ const today=()=>ds(new Date());
 const parse=s=>new Date(s+'T12:00:00');
 const fmt=(s,o)=>parse(s).toLocaleDateString('en-GB',o||{weekday:'short',day:'numeric',month:'short'});
 const mondayOf=d=>{const x=new Date(d);x.setHours(12,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
-function block(){
+function block(on){
   const start = D.startDate || (D.history.find(h=>!h.old)||{}).date || today();
-  const w = Math.max(0, Math.round((mondayOf(new Date()) - mondayOf(parse(start)))/(7*864e5)));
+  const w = Math.max(0, Math.round((mondayOf(on?parse(on):new Date()) - mondayOf(parse(start)))/(7*864e5)));
   return {week: w%6+1, block: Math.floor(w/6)+1, deload: w%6===5};
 }
 const rx = it => { const b=block(); return RX[it.rx] ? RX[it.rx](b.week,b.block) : it.rx; };
@@ -732,8 +732,9 @@ const TICK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function better(a,b){ if(!a) return false; if(!b) return true; if(a.s!=null) return a.s>(b.s||0); return a.w>b.w || (a.w===b.w && a.r>b.r); }
 function bestSet(sets){ return (sets||[]).reduce((b,s)=>better(s,b)?s:b,null); }
 function fmtSet(id,s){ if(!s) return ''; if(s.s!=null) return s.s+' sec'; const t=(ALL[id]||{}).type; if(t==='bw') return (s.w>0?'+'+s.w+' kg':'BW')+' × '+s.r; return s.w+' kg × '+s.r; }
-function lastOf(it,exceptTs){ return lastFor(it.id,exceptTs) || (it.from ? lastFor(it.from,exceptTs) : null); }
-function lastFor(id,exceptTs){ const h=[...D.history].sort((a,b)=>b.ts-a.ts).find(h=>h.ts!==exceptTs && h.items[id] && h.items[id].sets && h.items[id].sets.length); return h?{date:h.date,sets:h.items[id].sets}:null; }
+function lastOf(it,exceptTs,skipDeload){ return lastFor(it.id,exceptTs,skipDeload) || (it.from ? lastFor(it.from,exceptTs,skipDeload) : null) || (skipDeload ? lastOf(it,exceptTs,false) : null); }
+// skipDeload: ignore sessions logged in a deload week, so the week after a deload picks up the pre-deload weights
+function lastFor(id,exceptTs,skipDeload){ const h=[...D.history].sort((a,b)=>b.ts-a.ts).find(h=>h.ts!==exceptTs && h.items[id] && h.items[id].sets && h.items[id].sets.length && !(skipDeload && h.date && block(h.date).deload)); return h?{date:h.date,sets:h.items[id].sets}:null; }
 function recalcPBs(){ const p={}; [...D.history].sort((a,b)=>a.ts-b.ts).forEach(h=>Object.entries(h.items||{}).forEach(([id,it])=>{ const b=bestSet(it.sets); if(b && better(b,p[id])) p[id]=Object.assign({},b,{date:h.date}); })); D.pbs=p; }
 const round25 = x => Math.round(x/2.5)*2.5;
 
@@ -872,7 +873,7 @@ function openSession(sid, onDate){
   renderSession();
 }
 function prefill(it,i){
-  const b=block(), sp=spec(it), last=lastOf(it, D.draft.editTs);
+  const b=block(), sp=spec(it), last=lastOf(it, D.draft.editTs, !b.deload && !it.wk && !isRehabItem(it));
   if(!last) return {w:'',r:sp.rt||'',s:it.type==='t'?(sp.rt||''):'',hint:''};
   const ls = last.sets[Math.min(i,last.sets.length-1)];
   if(it.type==='t') return {s: it.wk ? sp.rt : (ls.s??''), hint:''};
@@ -909,7 +910,7 @@ function renderSession(){
     const first = prefill(it,0);
     for(let i=0;i<n;i++){ if(!st.sets[i]){ const p=prefill(it,i); st.sets[i]= it.type==='t' ? {s:p.s,done:false} : {w:p.w,r:p.r,done:false}; } }
     const doneN=st.sets.filter(x=>x.done).length;
-    const last=lastOf(it, dr.editTs);
+    const last=lastOf(it, dr.editTs, !block().deload && !it.wk && !isRehabItem(it));
     const isT = it.type==='t';
     h+=`<div class="ex ${doneN>=n?'complete':''}" id="ex-${it.id}">
       <div class="ex-h"><div><div class="ex-name">${esc(it.name)}${it.main?' <span style="font-size:12px;font-weight:600;color:var(--accent)">Main lift</span>':''}${it.warm?' <span style="font-size:12px;font-weight:600;color:var(--faint)">Warm-up</span>':''}</div><div class="ex-target">${n} × ${esc(sp.reps)}</div></div><div class="ex-count num">${doneN}/${n}</div></div>
