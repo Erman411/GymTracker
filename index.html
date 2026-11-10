@@ -361,7 +361,7 @@ select.in{background-image:none}
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Version 9 Nov 2026 (post-deload weights fix). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Version 10 Nov 2026 (rehab lifts show old weights). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -467,8 +467,8 @@ const S = {
     {id:'r_bike3',name:'Bike warm-up',type:'c',rx:'10 min, building to moderate'},
     {id:'r_curl',name:'Leg curl (rehab)',type:'w',sets:3,reps:'10',rt:10,rest:60,note:'Build back towards your normal leg curl weight over 2 weeks.'},
     {id:'r_eccurl',name:'Slow single-leg lowering curl',type:'w',sets:3,reps:'5 each leg',rt:5,rest:90,note:'Lift with both legs, lower with one over 4–5 seconds.'},
-    {id:'r_rdl',name:'Romanian deadlift (rehab)',type:'w',sets:3,reps:'8',rt:8,rest:90,note:'Start at about 50% of your old RDL. Add 5–10kg a session if pain-free.'},
-    {id:'r_squat',name:'Back squat (rehab)',type:'w',bar:true,sets:3,reps:'5',rt:5,rest:120,note:'Start at about 50% of your old squat and build back over 2–3 weeks.'},
+    {id:'r_rdl',name:'Romanian deadlift (rehab)',type:'w',sets:3,reps:'8',rt:8,rest:90,old:'rdl',pct:0.5,note:'Start at about 50% of your old RDL. Add 5–10kg a session if pain-free.'},
+    {id:'r_squat',name:'Back squat (rehab)',type:'w',bar:true,sets:3,reps:'5',rt:5,rest:120,old:'squat',pct:0.5,note:'Start at about 50% of your old squat and build back over 2–3 weeks.'},
     {id:'r_run',name:'Jog and strides',type:'c',rx:'Jog 5–10 min, then 4–6 strides of 60m: 60% effort first session, then 80%, then 90%.'},
     {id:'r_nordic',name:'Nordic (partial range)',type:'bw',sets:2,reps:'3',rt:3,rest:120,note:'Lower only as far as you can control, then catch yourself. Last thing to come back.'},
   ]},
@@ -737,6 +737,8 @@ function lastOf(it,exceptTs,skipDeload){ return lastFor(it.id,exceptTs,skipDeloa
 function lastFor(id,exceptTs,skipDeload){ const h=[...D.history].sort((a,b)=>b.ts-a.ts).find(h=>h.ts!==exceptTs && h.items[id] && h.items[id].sets && h.items[id].sets.length && !(skipDeload && h.date && block(h.date).deload)); return h?{date:h.date,sets:h.items[id].sets}:null; }
 function recalcPBs(){ const p={}; [...D.history].sort((a,b)=>a.ts-b.ts).forEach(h=>Object.entries(h.items||{}).forEach(([id,it])=>{ const b=bestSet(it.sets); if(b && better(b,p[id])) p[id]=Object.assign({},b,{date:h.date}); })); D.pbs=p; }
 const round25 = x => Math.round(x/2.5)*2.5;
+// rehab lifts: the last pre-injury working weight of the normal lift they replace
+function oldLift(it){ if(!it.old) return null; const l=lastFor(it.old,null,true)||lastFor(it.old,null,false); if(!l) return null; const top=Math.max(...l.sets.map(x=>+x.w||0)); return top>0?{date:l.date,w:top,start:round25(top*(it.pct||0.5))}:null; }
 
 /* ============ HEADER / TABS ============ */
 let TAB='home';
@@ -874,7 +876,7 @@ function openSession(sid, onDate){
 }
 function prefill(it,i){
   const b=block(), sp=spec(it), last=lastOf(it, D.draft.editTs, !b.deload && !it.wk && !isRehabItem(it));
-  if(!last) return {w:'',r:sp.rt||'',s:it.type==='t'?(sp.rt||''):'',hint:''};
+  if(!last){ const o=oldLift(it); if(o) return {w:o.start,r:sp.rt||'',hint:'Starting at '+Math.round((it.pct||0.5)*100)+'% of your old '+o.w+' kg'}; return {w:'',r:sp.rt||'',s:it.type==='t'?(sp.rt||''):'',hint:''}; }
   const ls = last.sets[Math.min(i,last.sets.length-1)];
   if(it.type==='t') return {s: it.wk ? sp.rt : (ls.s??''), hint:''};
   let w=ls.w, hint='';
@@ -916,6 +918,7 @@ function renderSession(){
       <div class="ex-h"><div><div class="ex-name">${esc(it.name)}${it.main?' <span style="font-size:12px;font-weight:600;color:var(--accent)">Main lift</span>':''}${it.warm?' <span style="font-size:12px;font-weight:600;color:var(--faint)">Warm-up</span>':''}</div><div class="ex-target">${n} × ${esc(sp.reps)}</div></div><div class="ex-count num">${doneN}/${n}</div></div>
       ${SUBS[p.id]?`<div class="swap-row">${it!==p?`<span class="swap-tag">Instead of ${esc(p.name)}</span>`:'<span></span>'}<button class="link" data-act="swapopen" data-id="${p.id}">${SWAPOPEN===p.id?'Close':(it!==p?'↻ Change':'↻ Swap')}</button></div>${SWAPOPEN===p.id?swapPicker(p,it):''}`:''}
       ${it.note?`<div class="ex-note">${esc(it.note)}</div>`:''}
+      ${(()=>{const o=oldLift(it);return o?`<div class="ex-last num">Before the injury (${fmt(o.date,{day:'numeric',month:'short'})}): ${o.w} kg. ${Math.round((it.pct||0.5)*100)}% = ${o.start} kg</div>`:''})()}
       ${last?`<div class="ex-last num">Last time (${fmt(last.date,{day:'numeric',month:'short'})}): ${last.sets.map(x=>fmtSet(it.id,x)).join(', ')}</div>`:'<div class="ex-last">First time: pick a weight you could do 2–3 more reps with.</div>'}
       ${first.hint && doneN===0?`<div class="ex-hint">${esc(first.hint)}</div>`:''}
       ${it.alt?`<div class="ex-alt">${esc(it.alt)}</div>`:''}
