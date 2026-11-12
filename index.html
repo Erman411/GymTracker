@@ -364,7 +364,7 @@ select.in{background-image:none}
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Version 10 Nov 2026 (rehab lifts show old weights). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Version 12 Nov 2026 (alternating stretch routines). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -541,6 +541,17 @@ const LIB = {
   legswingpost:{n:'Leg swings on a post',t:'Hamstrings, hips',c:['Front to back, then side to side, controlled']},
   latlunge:{n:'Lateral lunge',t:'Groin',c:['Step wide, sit into one hip, keep the other leg straight']},
   buildup:{n:'Build-up sprints',t:'Getting ready to sprint',c:['First at 60%, then 75%, then 90%','Walk back between each']},
+  lizard:{n:'Lizard lunge',t:'Hip flexors, groin',hold:1,c:['Long lunge, back knee down on a mat','Both hands inside the front foot','Sink the hips forward and down','Keep the front knee over the ankle'],x:'Letting the front knee collapse inward'},
+  strapham:{n:'Lying hamstring stretch with a strap',t:'Hamstrings',hold:1,c:['Lie on your back, towel or band around one foot','Raise the straight leg until you feel a mild pull','Other leg flat on the floor','Relax the leg into the strap'],x:'Bending the raised knee or lifting your hips'},
+  fig4:{n:'Lying figure-4',t:'Glutes, hip rotators',hold:1,c:['Lie on your back, knees bent','Cross one ankle over the opposite knee','Pull the bottom thigh towards your chest','Keep your head and shoulders down'],x:'Rocking onto your lower back'},
+  stepcalf:{n:'Calf drop on a step',t:'Calves, Achilles',hold:1,c:['Balls of the feet on a step, holding on for balance','Let one heel sink below the step','Keep that knee straight','Slowly back up'],x:'Bouncing at the bottom'},
+  frog:{n:'Frog stretch',t:'Groin, inner thighs',hold:1,c:['On all fours, slide your knees wide','Ankles in line with the knees, feet turned out','Rock the hips back slowly','Rest on your forearms'],x:'Forcing the knees wider than is comfortable'},
+  puppy:{n:'Puppy pose',t:'Lats, upper back, shoulders',hold:1,c:['Kneel, hips stacked over the knees','Walk the hands forward, arms straight','Let the chest sink toward the floor','Forehead down if it reaches'],x:'Sitting the hips back onto the heels'},
+  openbook:{n:'Open book',t:'Upper back rotation',c:['Lie on your side, knees bent to 90°, arms out in front','Open the top arm across to the other side','Follow your hand with your eyes','Knees stay together and down']},
+  floorpec:{n:'Lying chest opener',t:'Chest, front shoulders',hold:1,c:['Lie face down, one arm straight out to the side','Roll onto that side, away from the arm','Use the other hand to push yourself over','Ease in slowly'],x:'Rolling so far that the shoulder pinches'},
+  neck:{n:'Upper trap stretch',t:'Neck, upper traps',hold:1,c:['Sit tall, hold the seat edge with one hand','Tilt your ear to the other shoulder','Rest the free hand lightly on your head','Keep the shoulder down'],x:'Pulling hard on your head'},
+  forearm:{n:'Forearm stretch',t:'Forearms, wrists',hold:1,c:['Arm straight, palm up','Pull the fingers back with the other hand','Then palm down and pull the hand toward you','Elbow stays straight']},
+  worlds:{n:"World's greatest stretch",t:'Hips, hamstrings, upper back',c:['Step into a long lunge','Drop the inside elbow toward the front instep','Rotate that arm up to the ceiling','Push the hips back to straighten the front leg, then swap']},
   shuttles:{n:'Direction changes',t:'Cutting and turning',c:['Short sharp shuttles, plant and change direction']},
 };
 const ROUTINES = {
@@ -551,9 +562,17 @@ const ROUTINES = {
   flow:{title:'Saturday recovery flow',when:'Saturday, after the bike',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'hips9090',r:'10 each side'},{s:'couch',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'deepsquat',t:90},{s:'lathang',t:30}]},
   ankle:{title:'Ankle routine',when:'In the warm-up on Tue, Thu and Fri',g:'warm',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'}]},
   rsafe:{title:'Hamstring-safe mobility',when:'Rehab mode: no hamstring stretching until phase 3',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'couch',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'childs',t:45}]},
+  lower2:{title:'Lower body stretch B',when:'Alternates weekly with Lower body stretch',g:'after',alt:1,steps:[{s:'lizard',t:45,sides:1},{s:'strapham',t:45,sides:1},{s:'fig4',t:45,sides:1},{s:'stepcalf',t:30,sides:1},{s:'frog',t:60}]},
+  upper2:{title:'Upper body stretch B',when:'Alternates weekly with Upper body stretch',g:'after',alt:1,steps:[{s:'floorpec',t:30,sides:1},{s:'puppy',t:45},{s:'openbook',r:'8 each side'},{s:'neck',t:30,sides:1},{s:'forearm',t:30,sides:1,parts:['Palm up','Palm down']}]},
+  flow2:{title:'Saturday recovery flow B',when:'Alternates weekly with Saturday recovery flow',g:'recovery',alt:1,steps:[{s:'kneewall',r:'15 each side'},{s:'tibraise',r:'15'},{s:'catcow',r:'10 slow reps'},{s:'openbook',r:'8 each side'},{s:'worlds',r:'5 each side'},{s:'lizard',t:45,sides:1},{s:'fig4',t:45,sides:1},{s:'frog',t:60},{s:'floorpec',t:30,sides:1},{s:'puppy',t:45},{s:'stepcalf',t:30,sides:1},{s:'childs',t:45}]},
+  rsafe2:{title:'Hamstring-safe mobility B',when:'Alternates weekly with Hamstring-safe mobility',g:'recovery',alt:1,steps:[{s:'kneewall',r:'15 each side'},{s:'openbook',r:'8 each side'},{s:'quad',t:30,sides:1},{s:'fig4',t:45,sides:1},{s:'puppy',t:45},{s:'childs',t:45}]},
   gwarm:{title:'Gym warm-up',when:'Before every session. Moving, no holds',g:'warm',steps:[{s:'easycardio',t:180},{s:'legswing',r:'10 each way, each leg'},{s:'armcircle',r:'15 each'},{s:'bwsquat',r:'10'},{s:'rampup',r:'Build to working weight'}]},
 };
 const RGROUPS = [['after','After training'],['football','Football'],['recovery','Recovery'],['warm','Warm-ups (before training)']];
+// routines with a B version swap every other week (A on even weeks, B on odd)
+const ALT = {lower:'lower2',upper:'upper2',flow:'flow2',rsafe:'rsafe2'};
+const weekB = () => Math.round((mondayOf(new Date()) - mondayOf(new Date(2026,0,5)))/(7*864e5)) % 2 === 1;
+const wkR = rid => (weekB() && ALT[rid]) ? ALT[rid] : rid;
 const TODAY_ROUTINE = {0:'fpost',1:'upper',2:'lower',3:'upper',4:'lower',5:'lower',6:'flow'};
 
 // names from earlier versions of the app, so old logs still read properly
@@ -939,7 +958,7 @@ function renderSession(){
     </div>`;
   });
   { const wc = warmCard(CUR); h = h.slice(0,WU_AT) + wc + h.slice(WU_AT); }
-  if(s.stretch) h+=`<button class="then" data-act="goto-mob" data-m="${s.stretch}"><span><small>Then finish with</small><strong>${esc(ROUTINES[s.stretch].title)}</strong></span><span style="color:var(--faint);font-size:20px">›</span></button>`;
+  if(s.stretch) h+=`<button class="then" data-act="goto-mob" data-m="${wkR(s.stretch)}"><span><small>Then finish with</small><strong>${esc(ROUTINES[wkR(s.stretch)].title)}</strong></span><span style="color:var(--faint);font-size:20px">›</span></button>`;
   h+=`<label class="field"><span>Notes (optional)</span><textarea class="in" data-in="note" placeholder="How did it feel? Anything to remember next time?">${esc(dr.note)}</textarea></label>
       <button class="btn btn-primary" style="margin-top:14px" data-act="finish">${dr.editTs?'Update session':dr.date!==today()?'Save for '+esc(fmt(dr.date,{weekday:'long'})):'Finish session'}</button>
       <div style="text-align:center;margin-top:14px"><button class="link red" data-act="discard">${dr.editTs?'Cancel changes':'Discard session'}</button></div>`;
@@ -1333,7 +1352,7 @@ const rCount = rid => ROUTINES[rid].steps.length;
 const doneToday = rid => ((D.stretchLog||{})[today()]||[]).includes(rid);
 let SSEG='routines', ROPEN=null;
 function mobility(){
-  const dw=new Date().getDay(), tr=(rehabOn() && (REHAB_DAYS[dw]||dw===0)) ? 'rsafe' : TODAY_ROUTINE[dw], R=ROUTINES[tr];
+  const dw=new Date().getDay(), tr=(rehabOn() && (REHAB_DAYS[dw]||dw===0)) ? wkR('rsafe') : wkR(TODAY_ROUTINE[dw]), R=ROUTINES[tr];
   let h=`<div class="seg"><button data-act="sseg" data-p="routines" class="${SSEG==='routines'?'on':''}">Routines</button><button data-act="sseg" data-p="library" class="${SSEG==='library'?'on':''}">All stretches</button></div>`;
   if(SSEG==='routines'){
     h+=`<div class="card today" style="--c:var(--good)"><div class="today-day">Today's stretch</div><div class="today-name" style="font-size:24px">${esc(R.title)}</div><div class="today-focus">About ${rMins(tr)} min · ${rCount(tr)} ${ROUTINES[tr].g==='football'||ROUTINES[tr].g==='warm'?'moves':'stretches'}</div>
