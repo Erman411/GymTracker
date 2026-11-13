@@ -364,7 +364,7 @@ select.in{background-image:none}
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Version 12 Nov 2026 (alternating stretch routines). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Version 13 Nov 2026 (hamstring flexibility). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -466,7 +466,7 @@ const S = {
     {id:'abcrunch',name:'Ab crunch machine',type:'w',sets:3,reps:'10–15',rt:15,rest:60,from:'abwheel',note:'Curl your ribs towards your hips, don\'t pull with your arms, 2 seconds back up.'},
     {id:'sideplank',name:'Side plank',type:'t',sets:3,reps:'30–45 sec each side',rt:45,rest:45},
   ]},
-  rehab3:{name:'Hamstring rehab',focus:'Phase 3: return',color:'#C2410C',stretch:'rsafe',rehab:true,items:[
+  rehab3:{name:'Hamstring rehab',focus:'Phase 3: return',color:'#C2410C',stretch:'hamflex',rehab:true,items:[
     {id:'r_bike3',name:'Bike warm-up',type:'c',rx:'10 min, building to moderate'},
     {id:'r_curl',name:'Leg curl (rehab)',type:'w',sets:3,reps:'10',rt:10,rest:60,note:'Build back towards your normal leg curl weight over 2 weeks.'},
     {id:'r_eccurl',name:'Slow single-leg lowering curl',type:'w',sets:3,reps:'5 each leg',rt:5,rest:90,note:'Lift with both legs, lower with one over 4–5 seconds.'},
@@ -551,21 +551,25 @@ const LIB = {
   floorpec:{n:'Lying chest opener',t:'Chest, front shoulders',hold:1,c:['Lie face down, one arm straight out to the side','Roll onto that side, away from the arm','Use the other hand to push yourself over','Ease in slowly'],x:'Rolling so far that the shoulder pinches'},
   neck:{n:'Upper trap stretch',t:'Neck, upper traps',hold:1,c:['Sit tall, hold the seat edge with one hand','Tilt your ear to the other shoulder','Rest the free hand lightly on your head','Keep the shoulder down'],x:'Pulling hard on your head'},
   forearm:{n:'Forearm stretch',t:'Forearms, wrists',hold:1,c:['Arm straight, palm up','Pull the fingers back with the other hand','Then palm down and pull the hand toward you','Elbow stays straight']},
+  aknee:{n:'Active knee straightening',t:'Hamstrings (active range)',c:['Lie on your back, hold one thigh pointing straight up','Straighten the knee until you feel a mild pull','Hold 2 seconds, lower slowly','Thigh stays still: only the knee moves']},
+  slump:{n:'Seated nerve glide',t:'Hamstring nerve, back of the leg',c:['Sit on a table or bed edge, hands behind your back','Straighten one knee while looking up','Bend it again while looking down','Smooth and gentle: never hold at the end'],x:'Pushing into tingling or pain'},
+  halfsplit:{n:'Kneeling half split',t:'Hamstrings, calves',hold:1,c:['Kneel, then slide one leg straight out in front, heel down','Hands on blocks or the floor either side','Keep your back long and hinge forward from the hips','Toes up toward you'],x:'Rounding your back to reach further'},
   worlds:{n:"World's greatest stretch",t:'Hips, hamstrings, upper back',c:['Step into a long lunge','Drop the inside elbow toward the front instep','Rotate that arm up to the ceiling','Push the hips back to straighten the front leg, then swap']},
   shuttles:{n:'Direction changes',t:'Cutting and turning',c:['Short sharp shuttles, plant and change direction']},
 };
 const ROUTINES = {
-  lower:{title:'Lower body stretch',when:'After Tue, Thu and Fri',g:'after',steps:[{s:'couch',t:45,sides:1},{s:'hamfold',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'calf',t:30,sides:1,parts:['Straight knee','Bent knee']},{s:'deepsquat',t:60}]},
+  lower:{title:'Lower body stretch',when:'After Tue, Thu and Fri',g:'after',steps:[{s:'couch',t:45,sides:1},{s:'hamfold',t:30,sides:1,parts:['Round 1','Round 2']},{s:'pigeon',t:45,sides:1},{s:'calf',t:30,sides:1,parts:['Straight knee','Bent knee']},{s:'deepsquat',t:60}]},
   upper:{title:'Upper body stretch',when:'After Mon and Wed',g:'after',steps:[{s:'doorpec',t:30,sides:1,parts:['Elbow low','Elbow at shoulder height','Elbow high']},{s:'crossbody',t:30,sides:1},{s:'ohtri',t:30,sides:1},{s:'thread',t:45,sides:1},{s:'lathang',t:30,parts:['Hang 1','Hang 2']}]},
   fpost:{title:'Football cool-down',when:'After the game',g:'football',steps:[{s:'walk',t:180},{s:'quad',t:30,sides:1},{s:'couch',t:45,sides:1},{s:'standham',t:45,sides:1},{s:'sidelunge',t:30,sides:1},{s:'butterfly',t:45},{s:'pigeon',t:45,sides:1},{s:'calf',t:30,sides:1},{s:'childs',t:45}]},
   fpre:{title:'Football warm-up',when:'On the pitch before kick-off. Moving, no holds',g:'football',steps:[{s:'jog',t:180},{s:'highknees',r:'20m'},{s:'heelflicks',r:'20m'},{s:'shuffle',r:'20m each way'},{s:'carioca',r:'20m each way'},{s:'hipopen',r:'10 each leg'},{s:'hipclose',r:'10 each leg'},{s:'lungetwist',r:'10 each leg'},{s:'legswingpost',r:'10 front-back, 10 side-side, each leg'},{s:'latlunge',r:'8 each side'},{s:'buildup',r:'3 × 30m'},{s:'shuttles',r:'4 short shuttles'}]},
-  flow:{title:'Saturday recovery flow',when:'Saturday, after the bike',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'hips9090',r:'10 each side'},{s:'couch',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'deepsquat',t:90},{s:'lathang',t:30}]},
+  flow:{title:'Saturday recovery flow',when:'Saturday, after the bike',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'hips9090',r:'10 each side'},{s:'couch',t:45,sides:1},{s:'standham',t:45,sides:1},{s:'pigeon',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'deepsquat',t:90},{s:'lathang',t:30}]},
   ankle:{title:'Ankle routine',when:'In the warm-up on Tue, Thu and Fri',g:'warm',steps:[{s:'kneewall',r:'15 each side'},{s:'kneelankle',t:30,sides:1},{s:'tibraise',r:'15'},{s:'slowcalf',r:'10'}]},
-  rsafe:{title:'Hamstring-safe mobility',when:'Rehab mode: no hamstring stretching until phase 3',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'couch',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'childs',t:45}]},
-  lower2:{title:'Lower body stretch B',when:'Alternates weekly with Lower body stretch',g:'after',alt:1,steps:[{s:'lizard',t:45,sides:1},{s:'strapham',t:45,sides:1},{s:'fig4',t:45,sides:1},{s:'stepcalf',t:30,sides:1},{s:'frog',t:60}]},
+  rsafe:{title:'Hamstring-safe mobility',when:'Rehab phases 1–2: no hamstring stretching',g:'recovery',steps:[{s:'kneewall',r:'15 each side'},{s:'catcow',r:'10 slow reps'},{s:'thread',t:30,sides:1},{s:'couch',t:45,sides:1},{s:'doorpec',t:30,sides:1},{s:'childs',t:45}]},
+  lower2:{title:'Lower body stretch B',when:'Alternates weekly with Lower body stretch',g:'after',alt:1,steps:[{s:'lizard',t:45,sides:1},{s:'strapham',t:30,sides:1,parts:['Round 1','Round 2']},{s:'fig4',t:45,sides:1},{s:'stepcalf',t:30,sides:1},{s:'frog',t:60}]},
   upper2:{title:'Upper body stretch B',when:'Alternates weekly with Upper body stretch',g:'after',alt:1,steps:[{s:'floorpec',t:30,sides:1},{s:'puppy',t:45},{s:'openbook',r:'8 each side'},{s:'neck',t:30,sides:1},{s:'forearm',t:30,sides:1,parts:['Palm up','Palm down']}]},
-  flow2:{title:'Saturday recovery flow B',when:'Alternates weekly with Saturday recovery flow',g:'recovery',alt:1,steps:[{s:'kneewall',r:'15 each side'},{s:'tibraise',r:'15'},{s:'catcow',r:'10 slow reps'},{s:'openbook',r:'8 each side'},{s:'worlds',r:'5 each side'},{s:'lizard',t:45,sides:1},{s:'fig4',t:45,sides:1},{s:'frog',t:60},{s:'floorpec',t:30,sides:1},{s:'puppy',t:45},{s:'stepcalf',t:30,sides:1},{s:'childs',t:45}]},
+  flow2:{title:'Saturday recovery flow B',when:'Alternates weekly with Saturday recovery flow',g:'recovery',alt:1,steps:[{s:'kneewall',r:'15 each side'},{s:'tibraise',r:'15'},{s:'catcow',r:'10 slow reps'},{s:'openbook',r:'8 each side'},{s:'worlds',r:'5 each side'},{s:'lizard',t:45,sides:1},{s:'fig4',t:45,sides:1},{s:'halfsplit',t:45,sides:1},{s:'frog',t:60},{s:'floorpec',t:30,sides:1},{s:'puppy',t:45},{s:'stepcalf',t:30,sides:1},{s:'childs',t:45}]},
   rsafe2:{title:'Hamstring-safe mobility B',when:'Alternates weekly with Hamstring-safe mobility',g:'recovery',alt:1,steps:[{s:'kneewall',r:'15 each side'},{s:'openbook',r:'8 each side'},{s:'quad',t:30,sides:1},{s:'fig4',t:45,sides:1},{s:'puppy',t:45},{s:'childs',t:45}]},
+  hamflex:{title:'Hamstring flexibility',when:'Daily, any time. Gentle while in rehab phase 3',g:'recovery',steps:[{s:'legswing',r:'10 each way, each leg'},{s:'aknee',r:'10 each leg'},{s:'slump',r:'10 each leg'},{s:'strapham',t:30,sides:1,parts:['Round 1','Round 2']},{s:'halfsplit',t:30,sides:1},{s:'worlds',r:'5 each side'}]},
   gwarm:{title:'Gym warm-up',when:'Before every session. Moving, no holds',g:'warm',steps:[{s:'easycardio',t:180},{s:'legswing',r:'10 each way, each leg'},{s:'armcircle',r:'15 each'},{s:'bwsquat',r:'10'},{s:'rampup',r:'Build to working weight'}]},
 };
 const RGROUPS = [['after','After training'],['football','Football'],['recovery','Recovery'],['warm','Warm-ups (before training)']];
@@ -1352,11 +1356,13 @@ const rCount = rid => ROUTINES[rid].steps.length;
 const doneToday = rid => ((D.stretchLog||{})[today()]||[]).includes(rid);
 let SSEG='routines', ROPEN=null;
 function mobility(){
-  const dw=new Date().getDay(), tr=(rehabOn() && (REHAB_DAYS[dw]||dw===0)) ? wkR('rsafe') : wkR(TODAY_ROUTINE[dw]), R=ROUTINES[tr];
+  const dw=new Date().getDay(), tr=(rehabOn() && (REHAB_DAYS[dw]||dw===0)) ? (rehabPhase()>=3 ? 'hamflex' : wkR('rsafe')) : wkR(TODAY_ROUTINE[dw]), R=ROUTINES[tr];
   let h=`<div class="seg"><button data-act="sseg" data-p="routines" class="${SSEG==='routines'?'on':''}">Routines</button><button data-act="sseg" data-p="library" class="${SSEG==='library'?'on':''}">All stretches</button></div>`;
   if(SSEG==='routines'){
     h+=`<div class="card today" style="--c:var(--good)"><div class="today-day">Today's stretch</div><div class="today-name" style="font-size:24px">${esc(R.title)}</div><div class="today-focus">About ${rMins(tr)} min · ${rCount(tr)} ${ROUTINES[tr].g==='football'||ROUTINES[tr].g==='warm'?'moves':'stretches'}</div>
       <div style="margin-top:14px">${doneToday(tr)?`<button class="btn btn-done" data-act="rstart" data-r="${tr}">Done today ✓ · do it again</button>`:`<button class="btn btn-primary" data-act="rstart" data-r="${tr}">Start guided routine</button>`}</div></div>`;
+    const hamOK = !rehabOn() || rehabPhase()>=3;
+    if(hamOK && tr!=='hamflex') h+=`<div class="card"><div class="today-day">Daily extra · ${rMins('hamflex')} min</div><div style="font-weight:700;font-size:18px;margin-top:2px">Hamstring flexibility</div><div class="sub">${rehabOn()?'Phase 3: mild pull only, never pain.':'Every day for 6–8 weeks is what makes the range stick.'}</div><div style="margin-top:12px">${doneToday('hamflex')?'<button class="btn btn-done" data-act="rstart" data-r="hamflex">Done today ✓ · do it again</button>':'<button class="btn btn-quiet" data-act="rstart" data-r="hamflex">Start</button>'}</div></div>`;
     RGROUPS.forEach(([g,label])=>{
       h+=`<div class="sec">${label}</div>`;
       Object.entries(ROUTINES).filter(([,r])=>r.g===g).forEach(([id,r])=>{
