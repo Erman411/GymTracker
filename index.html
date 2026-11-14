@@ -364,7 +364,7 @@ select.in{background-image:none}
         <div class="list-row"><div>Restore from a backup<div class="m">Replaces what's on this device</div></div><label class="link" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="import" hidden></label></div>
         <div class="list-row"><div style="color:var(--danger)">Delete all data<div class="m">Can't be undone</div></div><button class="link red" data-act="clear">Delete</button></div>
       </div>
-      <p class="hint">Version 14 Nov 2026 (football pause). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
+      <p class="hint">Version 14 Nov 2026 (Sunday gym session). Saved on this device, and in the cloud once sync is connected. On iPhone, open the page in Safari and use Share → Add to Home Screen.</p>
     </section>
 
   </div></main>
@@ -448,6 +448,15 @@ const S = {
     {id:'sat_bike',name:'Easy bike',type:'c',rx:'30 min, conversational pace. No legs, no running.'},
     {id:'sat_flow',name:'Recovery mobility flow',type:'c',rx:'About 15 min, in the Stretch tab',link:'flow'},
   ]},
+  sunday:{name:'Sunday session',focus:'Cardio, shoulders, arms, core',color:'#B45309',stretch:'hamflex',items:[
+    {id:'sun_walk',name:'Incline walk',type:'c',rx:'30 min. Treadmill at 10–12% incline, about 5–5.5 km/h. Brisk but you can still talk. Replaces the calories from football.'},
+    {id:'sun_lat',name:'Cable or machine lateral raise',type:'w',sets:3,reps:'12–15',rt:15,rest:60,note:'Light and strict. Lead with the elbows, stop at shoulder height.'},
+    {id:'sun_rdf',name:'Rear delt fly',type:'w',sets:3,reps:'15',rt:15,rest:60,note:'Machine or dumbbells. Squeeze the back of the shoulders, no swinging.'},
+    {id:'sun_hammer',name:'Hammer curl',type:'w',sets:3,reps:'10–12',rt:12,rest:0,note:'Superset: go straight into the cable triceps extension.'},
+    {id:'sun_tri',name:'Single-arm cable triceps extension',type:'w',sets:3,reps:'12 each arm',rt:12,rest:60},
+    {id:'sun_calf',name:'Standing calf raise',type:'w',sets:3,reps:'12–15',rt:15,rest:60,note:'Full stretch at the bottom, 1-second pause at the top.'},
+    {id:'hlr',name:'Leg raise (any level)',type:'bw',sets:3,reps:'10–15',rt:15,rest:60,note:'Reverse crunch or captain\'s chair. Slow on the way down.'},
+  ]},
   football:{name:'Football',focus:'11-a-side, 90 min',color:'#1B7F3B',football:true,items:[]},
   // ---- hamstring rehab mode (Settings) ----
   rehab1:{name:'Hamstring rehab',focus:'Phase 1: protect',color:'#C2410C',stretch:'rsafe',rehab:true,items:[
@@ -485,7 +494,7 @@ const rehabOn = () => !!(D && D.settings && D.settings.rehab && D.settings.rehab
 const rehabPhase = () => Math.min(3, Math.max(1, (D.settings.rehab||{}).phase||1));
 function planFor(dow){
   if(rehabOn()){ if(REHAB_DAYS[dow]) return 'rehab'+rehabPhase(); if(dow===0) return 'restwalk'; }
-  if(dow===0 && footballOff()) return 'restwalk';
+  if(dow===0 && footballOff()) return 'sunday';
   return SCHEDULE[dow];
 }
 const footballOff = () => !!(D && D.settings && D.settings.footballOff);
@@ -841,7 +850,7 @@ function home(){
   const fats=D.body.filter(x=>x.bf); const lastBf=fats.length?fats[fats.length-1].bf:null;
 
   $('stats').innerHTML = `
-    <div class="stat"><div class="stat-v num">${gym}<small>/ 6</small></div><div class="stat-l">Sessions this week</div><div class="stat-d">${footballOff()?'Sunday: rest and walk':'Plus football on Sunday'}</div></div>
+    <div class="stat"><div class="stat-v num">${gym}<small>/ 6</small></div><div class="stat-l">Sessions this week</div><div class="stat-d">${footballOff()?'Plus a light Sunday session':'Plus football on Sunday'}</div></div>
     <div class="stat"><div class="stat-v num">${streak}<small>${streak===1?'day':'days'}</small></div><div class="stat-l">Streak</div><div class="stat-d">Never miss twice in a row</div></div>
     <div class="stat"><div class="stat-v num">${a1!=null?a1.toFixed(1):'–'}<small>kg</small></div><div class="stat-l">7-day average</div><div class="stat-d ${diff==null?'':diff>0?'up':'down'}">${diff==null?'Needs two weeks of weigh-ins':(diff>0?'+':'')+diff.toFixed(2)+' kg vs last week'}</div></div>
     <div class="stat"><div class="stat-v num">${lastBf!=null?lastBf.toFixed(1):'–'}<small>%</small></div><div class="stat-l">Body fat</div><div class="stat-d">Phase ${phaseN()}: ${PH().name} · goal ${D.settings.targetWeight} kg at ${D.settings.targetFat}%</div></div>`;
@@ -1209,8 +1218,8 @@ function rehabCard(){
       ${passed===4?'<div class="banner info" style="margin-top:10px">All four passed. You can turn rehab mode off and go back to the normal plan, starting legs at about 70% of your old weights.</div>':''}`;
   }
   const fo=footballOff();
-  h+=`<div class="sec" style="margin:18px 0 6px">Football</div><div class="sub">${fo?'Paused. Sunday is a rest day with a walk and the hamstring routine.':'On. Sunday is match day.'}</div>
-    <button class="btn btn-quiet" style="margin-top:10px" data-act="football-toggle">${fo?'Football is back: restore Sundays':'Pause football: make Sunday a rest day'}</button>`;
+  h+=`<div class="sec" style="margin:18px 0 6px">Football</div><div class="sub">${fo?'Paused. Sunday is a light gym session: incline walk, shoulders, arms, calves and core, then the hamstring routine.':'On. Sunday is match day.'}</div>
+    <button class="btn btn-quiet" style="margin-top:10px" data-act="football-toggle">${fo?'Football is back: restore Sundays':'Pause football: Sunday becomes a light gym session'}</button>`;
   c.innerHTML=h;
 }
 
@@ -1519,7 +1528,7 @@ document.addEventListener('click', e=>{
     if(!row && isNaN(k) && !note){ toast('Enter at least one result'); return; }
     D.tests.push({date:today(),row:row||null,ktw:isNaN(k)?null:k,note:note||null}); save(); toast('Retest saved'); pTests();
   }
-  else if(a==='football-toggle'){ D.settings.footballOff=!footballOff(); save(); rehabCard(); toast(D.settings.footballOff?'Football paused: Sunday is now a rest day':'Football is back on Sundays'); }
+  else if(a==='football-toggle'){ D.settings.footballOff=!footballOff(); save(); rehabCard(); toast(D.settings.footballOff?'Football paused: Sunday is now a light gym session':'Football is back on Sundays'); }
   else if(a==='rehab-toggle'){
     const r=D.settings.rehab=D.settings.rehab||{};
     if(r.on){ if(!confirm('Turn off rehab mode and go back to the normal plan?')) return; r.on=false; save(); toast('Back to your normal plan'); }
